@@ -99,6 +99,52 @@ Hey ! 👋
 
 ---
 
+## 🗄️ Database Schema & Initialization :
+
+DevForge utilizes **SQLite** with **SQLAlchemy 2.0 ORM** for persistent local storage (`backend/practice_suite.db`).
+
+### 📊 Database Tables Architecture
+
+| Table Name | Description | Key Columns / Relations |
+|---|---|---|
+| `challenges` | Stores problem specs, difficulty, mode, starter & solution code. | `id` (PK), `title`, `description`, `difficulty`, `mode`, `starter_html`, `starter_css`, `starter_js`, `solution_html`, `solution_css`, `solution_js`, `requirements_json`, `hints_json`, `is_approved`, `created_at` |
+| `test_cases` | Automated test suite assertions per challenge. | `id` (PK), `challenge_id` (FK ➔ `challenges.id`, `CASCADE`), `test_id`, `description`, `test_type` (`dom`/`css`/`js`), `selector`, `property_name`, `expected_value`, `assertion_code`, `order_index` |
+| `attempts` | Submission logs and execution metrics. | `id` (PK), `challenge_id` (FK ➔ `challenges.id`, `CASCADE`), `code_html`, `code_css`, `code_js`, `status` (`passed`/`failed`), `passed_count`, `total_count`, `execution_time_ms`, `created_at` |
+| `attempt_results` | Granular per-test results for each submission attempt. | `id` (PK), `attempt_id` (FK ➔ `attempts.id`, `CASCADE`), `test_id`, `description`, `passed`, `message` |
+| `llm_settings` | Active AI provider configuration & credentials. | `id` (PK), `provider` (`ollama`/`gemini`/`openai`/`groq`/`anthropic`/`custom`), `base_url`, `model`, `api_key`, `temperature`, `updated_at` |
+
+---
+
+### ⚙️ How to Create & Seed the Database Schema
+
+#### 1. Automatic Schema Creation (Default)
+When you start the backend server, the FastAPI application `lifespan` handler automatically invokes `init_db()` and `seed_database()`. It creates `backend/practice_suite.db` and populates the starter challenge suite if empty:
+```powershell
+backend\venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+#### 2. Manual CLI Schema Creation & Seeding
+To manually create all tables and populate initial challenges via Python script:
+```powershell
+# Windows
+backend\venv\Scripts\python.exe -c "from backend.app.models.database import init_db; from backend.app.seed_data import seed_database; init_db(); seed_database(); print('Schema created and default challenges seeded!')"
+
+# Linux / macOS
+backend/venv/bin/python3 -c "from backend.app.models.database import init_db; from backend.app.seed_data import seed_database; init_db(); seed_database(); print('Schema created and default challenges seeded!')"
+```
+
+#### 3. Resetting / Rebuilding Database From Scratch
+If you ever want to completely reset challenges, clear test attempts, or start fresh:
+```powershell
+# 1. Delete SQLite database file
+Remove-Item backend\practice_suite.db -Force
+
+# 2. Re-create and seed fresh schema
+backend\venv\Scripts\python.exe -c "from backend.app.models.database import init_db; from backend.app.seed_data import seed_database; init_db(); seed_database(); print('Database freshly rebuilt!')"
+```
+
+---
+
 ## ⚡ Quick Start :
 
 ### Prerequisites
