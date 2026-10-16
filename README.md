@@ -1,4 +1,4 @@
-<h1 align="center">🛠️ DevForge — AI-Powered Frontend Practice Suite</h1>
+<h1 align="center">🛠️ RenderLab — AI-Powered Frontend Practice Suite</h1>
 
 <p align="center">
   <b>A modern, LeetCode-style interactive workspace built for frontend engineers to master real-world HTML, CSS, and JavaScript.</b>
