@@ -1,31 +1,33 @@
 <h1 align="center">🛠️ RenderLab — AI-Powered Frontend Practice Suite</h1>
 
 <p align="center">
-  <b>A modern, LeetCode-style interactive workspace built for frontend engineers to master real-world HTML, CSS, and JavaScript.</b>
+  <b>A modern, LeetCode-style interactive workspace built for frontend engineers to master real-world HTML, CSS, and JavaScript across 311 progressive challenges.</b>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.0-emerald?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-2.0.0-emerald?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Challenges-311_Total-blue?style=for-the-badge" alt="Challenges" />
   <img src="https://img.shields.io/badge/Status-Active_Development-orange?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome" />
 </p>
 
 ---
 
-## 💫 About The Project :
+## 💫 About RenderLab
 
-Hey ! 👋
+Hey! 👋
 
-* **DevForge** is an open-source, full-stack practice environment designed specifically for frontend web developers.
-* Features a high-performance **3-Panel IDE Workspace** powered by the **Monaco Editor** (VS Code engine) with full multi-tab HTML, CSS, and JS support.
+* **RenderLab** is an open-source, full-stack practice environment designed specifically for frontend engineers.
+* Pre-loaded with **311 structured, hand-crafted challenges** strictly ordered from beginner to advanced across **HTML (#1–#103)**, **CSS (#104–#209)**, and **JavaScript (#210–#311)**.
+* Features a high-performance **3-Panel IDE Workspace** powered by the **Monaco Editor** (VS Code engine) with full multi-tab HTML, CSS, and JS editing.
 * Includes a **Dual Visual Comparison Engine**: preview your live code in a sandboxed iframe while comparing it side-by-side against the **Expected Reference Output**.
-* Equipped with an **Automated In-Browser Test Suite** that evaluates DOM structure, computed CSS styles, and JavaScript interactions with live feedback and confetti celebrations.
+* Equipped with an **Automated In-Browser Test Suite** evaluating DOM structure, computed CSS styles, and JavaScript interactions with live test assertions.
 * Powered by a flexible **Dual-LLM Architecture**: run completely offline using **Local Ollama** (with an in-app 1-click model installer & download streamer) or connect to **Cloud AI APIs** (Google Gemini, OpenAI, Groq, Anthropic Claude).
-* Comes pre-loaded with **10 curated, deduplicated challenges** across 4 modes, plus an **AI Challenge Generator** to generate infinite custom challenges on demand.
+* Features an **AI Challenge Generator Modal** supporting 311 blueprint templates, sequential numerical list selection, and resilient challenge generation with automatic blank enforcement (so starter code never reveals the solution).
 
 ---
 
-## 💻 Tech Stack :
+## 💻 Tech Stack
 
 <p align="left">
   <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
@@ -47,105 +49,56 @@ Hey ! 👋
 
 ---
 
-## 🚀 Key Highlights & Capabilities :
+## 🚀 Key Highlights & Capabilities
 
 ### 🖥️ 1. LeetCode-Style 3-Panel IDE
-* **Left Panel**: Problem description, difficulty badge, estimated completion time, interactive requirements checklist, static clues, and past attempt history.
+* **Left Panel**: Problem description, difficulty badge, estimated completion time, interactive requirements checklist, hints, and past attempt history.
 * **Center Panel**: Multi-tab code editor powered by Monaco Editor (`index.html`, `styles.css`, `script.js`) with syntax formatting, keyboard shortcuts, code reset, and copy actions.
 * **Right Panel**: Dual-tab preview with live isolated iframe rendering, responsive device switcher (Desktop, Tablet, Mobile), console log viewer, and automated test result assertions.
 
 ### 🎯 2. Dual Visual Comparison Engine
-* **Target Output Preview**: Visual card on the left panel plus a dedicated **Expected Output** tab on the right panel showing the exact target reference UI.
-* **Live Sandbox Preview**: Real-time rendering of your working solution with sandboxed security (`allow-scripts allow-same-origin allow-modals`) and zero screen-flicker or recursive loading.
+* **Target Output Preview**: Visual card on the left panel plus a dedicated **Expected Output** tab showing the exact reference design.
+* **Live Sandbox Preview**: Real-time rendering of your working solution with sandboxed security (`allow-scripts allow-same-origin allow-modals`) and zero screen-flicker.
 
-### 🤖 3. Dual LLM Architecture & In-App Model Installer
+### 📚 3. 311 Curriculum Challenges Categorized & Sequenced
+Challenges are organized across 3 main categories, numbered strictly from `#1` to `#311`:
+* **HTML (#1 to #103)**: Semantic landmarks (`<header>`, `<nav>`, `<main>`, `<article>`, `<aside>`, `<footer>`), accessible forms, validation, native dialogs, responsive `<picture>`, `<details>`, `<template>`, `<meter>`, tables, and micro-markup.
+* **CSS (#104 to #209)**: Modern Flexbox layouts, CSS Grid auto-fit galleries, keyframe animations, glassmorphism, 3D card flips, responsive navigation drawers, CSS variables, and design systems.
+* **JavaScript (#210 to #311)**: Event delegation, DOM manipulation, asynchronous fetching, debounce/throttle utilities, modal controller patterns, form validation regex, canvas animations, and state machines.
+
+### 🧩 4. 4 Distinct Challenge Modes
+* 📝 **Fill in the Blanks** (`fill_blanks`): Complete designated `TODO` sections and blank properties in starter code. Starter code never reveals the solution.
+* 🐛 **Fix the Broken Code** (`fix_broken`): Diagnose subtle bugs, broken accessibility tags, layout overflows, or faulty event listeners.
+* 🏗️ **Build Component** (`build_component`): Build full interactive components from minimal skeletal scaffolding.
+* 🎨 **Recreate Design** (`recreate_page`): Replicate UI designs and page layouts matching the reference output pixel-for-pixel.
+
+### 🤖 5. Dual LLM Architecture & Challenge Generator
 * **Local Offline AI (Ollama)**:
   * Automatically detects local daemon status on port `11434`.
-  * **1-Click Model Installer**: Install coding models (`qwen2.5-coder:1.5b`, `qwen2.5-coder:7b`, `deepseek-coder:6.7b`, `llama3.1:8b`) directly in the app with real-time download streaming & MB progress.
-  * One-click **Start Ollama** button if the local daemon is offline.
+  * **1-Click Model Installer**: Install coding models (`qwen2.5-coder:1.5b`, `qwen2.5-coder:7b`, `deepseek-coder:6.7b`, `llama3.1:8b`) with real-time download streaming.
 * **Cloud AI Providers**:
-  * Native integrations for Google Gemini (`gemini-2.5-flash`), OpenAI (`gpt-4o-mini`), Groq (`llama-3.3-70b`), Anthropic Claude, and custom OpenAI-compatible endpoints.
-  * Built-in connection tester with millisecond latency ping.
-
-### 💡 4. Interactive AI Tutor Chat
-* **Contextual Explanations**: Ask custom questions about your code or why a specific test assertion failed.
-* **Socratic Guidance**: Delivers progressive, pedagogical hints without spoiling the full solution.
-* **Chat History**: Preserves conversation context across the solving session.
-
-### 🧩 5. 4 Practice Modes Supported
-* 📝 **Fill in the Blanks** (`fill_blanks`): Complete designated `TODO` sections and blank properties in starter code.
-* 🐛 **Fix the Broken Code** (`fix_broken`): Diagnose bugs, resolve conflicting CSS rules, or fix faulty event listeners.
-* 🏗️ **Build Component** (`build_component`): Build full interactive components from functional specifications.
-* 🎨 **Recreate Page** (`recreate_page`): Replicate UI designs and page layouts matching the reference output.
+  * Native integrations for Google Gemini (`gemini-2.5-flash`), OpenAI (`gpt-4o-mini`), Groq (`llama-3.3-70b`), and Anthropic Claude.
+* **Resilient Challenge Generator**:
+  * Quick-search and browse all 311 challenge blueprints formatted as a sequential numerical list (`#1` to `#311`).
+  * Automatic schema normalization and blank creation prevents starter code from revealing the solution.
+  * Resilient fallback to curriculum blueprints ensures zero 422 errors even if the local LLM is offline.
 
 ---
 
-## 📚 Curated Practice Suite (10 Unique Challenges) :
+## 🗄️ Database Schema & Curriculum Portability
 
-| # | Challenge Name | Difficulty | Mode | Key Topics Covered |
-|:---:|---|:---:|:---:|---|
-| **01** | **Interactive Glow Button** | `Easy` | Fill in Blanks | CSS Transitions, `:hover`, Box Shadow Glow |
-| **02** | **Centered Responsive Navigation Bar** | `Easy` | Fill in Blanks | CSS Flexbox, Alignment, Navigation Header |
-| **03** | **Interactive Counter Component** | `Medium` | Fill in Blanks | DOM Events, State Management, Dynamic Styling |
-| **04** | **Buggy Modal Dialog** | `Medium` | Fix Bugs | Modal Overlay, Event Listeners, CSS Specificity |
-| **05** | **FAQ Accordion with Animated Expansion** | `Medium` | Build Component | CSS Max-Height Transition, Icon Rotation, DOM Toggling |
-| **06** | **Basic CSS Styling Challenge** | `Easy` | Fill in Blanks | Container Styling, Typography, Button Effects |
-| **07** | **CSS Grid Photo Gallery** | `Easy` | Fill in Blanks | Responsive CSS Grid, `repeat(auto-fit)`, Gap Spacing |
-| **08** | **Countdown Timer With Pause** | `Easy` | Fill in Blanks | JavaScript `setInterval`, Timer State, DOM Updates |
-| **09** | **Animated Toggle Switch** | `Easy` | Fix Bugs | CSS Slider Animations, Checkbox Logic, Transitions |
-| **10** | **Easy JavaScript Form Validation** | `Easy` | Fill in Blanks | Regex Validation, Form Submit Events, Error Messages |
+RenderLab uses **SQLite** with **SQLAlchemy 2.0 ORM** for persistent local storage (`backend/practice_suite.db`).
 
-*✨ Users can also delete any unwanted challenges with 1-click in the browser or generate infinite new challenges using the AI Challenge Generator.*
+### 📦 Portable 311 Curriculum
+All 311 challenges are versioned directly in Git inside:
+* `backend/app/data/curriculum_311.json` (Full challenge specifications, tests, starter and solution code)
+* `frontend/src/data/blueprints_311.json` (Optimized challenge generator blueprints)
+
+When you or a friend clone the repository and start the server, `seed_database()` automatically imports and syncs all 311 challenges into the SQLite database on launch.
 
 ---
 
-## 🗄️ Database Schema & Initialization :
-
-DevForge utilizes **SQLite** with **SQLAlchemy 2.0 ORM** for persistent local storage (`backend/practice_suite.db`).
-
-### 📊 Database Tables Architecture
-
-| Table Name | Description | Key Columns / Relations |
-|---|---|---|
-| `challenges` | Stores problem specs, difficulty, mode, starter & solution code. | `id` (PK), `title`, `description`, `difficulty`, `mode`, `starter_html`, `starter_css`, `starter_js`, `solution_html`, `solution_css`, `solution_js`, `requirements_json`, `hints_json`, `is_approved`, `created_at` |
-| `test_cases` | Automated test suite assertions per challenge. | `id` (PK), `challenge_id` (FK ➔ `challenges.id`, `CASCADE`), `test_id`, `description`, `test_type` (`dom`/`css`/`js`), `selector`, `property_name`, `expected_value`, `assertion_code`, `order_index` |
-| `attempts` | Submission logs and execution metrics. | `id` (PK), `challenge_id` (FK ➔ `challenges.id`, `CASCADE`), `code_html`, `code_css`, `code_js`, `status` (`passed`/`failed`), `passed_count`, `total_count`, `execution_time_ms`, `created_at` |
-| `attempt_results` | Granular per-test results for each submission attempt. | `id` (PK), `attempt_id` (FK ➔ `attempts.id`, `CASCADE`), `test_id`, `description`, `passed`, `message` |
-| `llm_settings` | Active AI provider configuration & credentials. | `id` (PK), `provider` (`ollama`/`gemini`/`openai`/`groq`/`anthropic`/`custom`), `base_url`, `model`, `api_key`, `temperature`, `updated_at` |
-
----
-
-### ⚙️ How to Create & Seed the Database Schema
-
-#### 1. Automatic Schema Creation (Default)
-When you start the backend server, the FastAPI application `lifespan` handler automatically invokes `init_db()` and `seed_database()`. It creates `backend/practice_suite.db` and populates the starter challenge suite if empty:
-```powershell
-backend\venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-#### 2. Manual CLI Schema Creation & Seeding
-To manually create all tables and populate initial challenges via Python script:
-```powershell
-# Windows
-backend\venv\Scripts\python.exe -c "from backend.app.models.database import init_db; from backend.app.seed_data import seed_database; init_db(); seed_database(); print('Schema created and default challenges seeded!')"
-
-# Linux / macOS
-backend/venv/bin/python3 -c "from backend.app.models.database import init_db; from backend.app.seed_data import seed_database; init_db(); seed_database(); print('Schema created and default challenges seeded!')"
-```
-
-#### 3. Resetting / Rebuilding Database From Scratch
-If you ever want to completely reset challenges, clear test attempts, or start fresh:
-```powershell
-# 1. Delete SQLite database file
-Remove-Item backend\practice_suite.db -Force
-
-# 2. Re-create and seed fresh schema
-backend\venv\Scripts\python.exe -c "from backend.app.models.database import init_db; from backend.app.seed_data import seed_database; init_db(); seed_database(); print('Database freshly rebuilt!')"
-```
-
----
-
-## ⚡ Quick Start :
+## ⚡ Quick Start
 
 ### Prerequisites
 * **Node.js** 18+ ([Download](https://nodejs.org/))
@@ -154,8 +107,8 @@ backend\venv\Scripts\python.exe -c "from backend.app.models.database import init
 
 ### 1. Clone & Setup
 ```bash
-git clone https://github.com/your-username/DevForge.git
-cd DevForge
+git clone https://github.com/your-username/RenderLab.git
+cd RenderLab
 ```
 
 ### 2. Backend Virtual Environment
@@ -184,6 +137,10 @@ cd ..
 ```powershell
 .\start.bat
 ```
+To stop all processes gracefully:
+```powershell
+.\stop.bat
+```
 
 #### 🛠️ Option B: Manual Launch
 ```powershell
@@ -200,7 +157,7 @@ npm run dev
 
 ---
 
-## 📡 API Reference :
+## 📡 API Reference
 
 <details>
 <summary><b>Click to expand full REST API endpoints</b></summary>
@@ -209,7 +166,7 @@ npm run dev
 * `GET /api/challenges` — List all challenges with optional filters (`difficulty`, `mode`, `topic`, `search`).
 * `GET /api/challenges/{id}` — Get complete challenge payload with starter code, solution, requirements & tests.
 * `POST /api/challenges` — Create a custom challenge manually.
-* `POST /api/challenges/generate` — Generate a validated challenge using active LLM.
+* `POST /api/challenges/generate` — Generate a validated challenge using active LLM or curriculum blueprint.
 * `DELETE /api/challenges/{id}` — Delete a challenge and cascading attempts/tests.
 
 ### Submissions (`/api/submissions`)

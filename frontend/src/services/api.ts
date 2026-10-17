@@ -69,6 +69,7 @@ export const api = {
 
   async generateChallenge(payload: {
     topic: string;
+    category?: 'html' | 'css' | 'javascript';
     difficulty: string;
     mode: string;
     learning_objective?: string;

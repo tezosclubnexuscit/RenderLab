@@ -1,6 +1,6 @@
 @echo off
 echo ===================================================
-echo   Stopping DevForge Servers
+echo   Stopping RenderLab Servers
 echo ===================================================
 echo.
 
@@ -18,5 +18,5 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5174 ^| findstr LISTENING') 
 )
 
 echo.
-echo All DevForge processes stopped cleanly.
+echo All RenderLab processes stopped cleanly.
 pause

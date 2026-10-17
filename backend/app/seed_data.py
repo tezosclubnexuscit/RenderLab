@@ -3,6 +3,200 @@ from .models.database import SessionLocal, ChallengeModel, TestCaseModel
 
 
 SEED_CHALLENGES = [
+    # =========================================================================
+    # CATEGORY: HTML (Semantic Markup, Forms, Media, Document Hierarchy)
+    # =========================================================================
+    {
+        "id": "html-semantic-structure-001",
+        "title": "Semantic HTML5 Content Structure",
+        "description": "Construct an accessible, semantic HTML5 document layout using <header>, <nav>, <main>, <article>, <section>, <aside>, and <footer> tags instead of unsemantic div elements.",
+        "difficulty": "easy",
+        "topics": ["html", "semantic-html", "accessibility", "structure"],
+        "mode": "fill_blanks",
+        "starter_code": {
+            "html": '<div class="page-container">\n  <!-- TODO: 1. Replace with <header> -->\n  <div class="site-header">\n    <h1>Frontend Engineering Daily</h1>\n    <!-- TODO: 2. Replace with <nav> -->\n    <div class="main-navigation">\n      <a href="#articles">Articles</a>\n      <a href="#about">About</a>\n    </div>\n  </div>\n\n  <!-- TODO: 3. Replace with <main> -->\n  <div class="content-body">\n    <!-- TODO: 4. Replace with <article> containing a <section> -->\n    <div class="post-card">\n      <h2>Understanding Semantic HTML5</h2>\n      <p>Semantic tags give meaning to content for screen readers, search engines, and browsers.</p>\n    </div>\n\n    <!-- TODO: 5. Replace with <aside> -->\n    <div class="sidebar">\n      <h3>Trending Tags</h3>\n      <p>#css #html #javascript</p>\n    </div>\n  </div>\n\n  <!-- TODO: 6. Replace with <footer> -->\n  <div class="site-footer">\n    <p>&copy; 2026 RenderLab Practice Suite</p>\n  </div>\n</div>',
+            "css": 'body {\n  margin: 0;\n  padding: 24px;\n  background: #0f172a;\n  color: #f8fafc;\n  font-family: system-ui, sans-serif;\n}\n.page-container { max-width: 800px; margin: 0 auto; }\nheader { border-bottom: 2px solid #334155; padding-bottom: 16px; margin-bottom: 24px; }\nnav a { color: #38bdf8; margin-right: 16px; text-decoration: none; font-weight: 600; }\nmain { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }\narticle { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; }\naside { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; }\nfooter { margin-top: 32px; border-top: 1px solid #334155; padding-top: 16px; color: #94a3b8; font-size: 0.9rem; }\n',
+            "javascript": "// Pure HTML Semantic Challenge - No JS required",
+        },
+        "solution_code": {
+            "html": '<div class="page-container">\n  <header class="site-header">\n    <h1>Frontend Engineering Daily</h1>\n    <nav class="main-navigation">\n      <a href="#articles">Articles</a>\n      <a href="#about">About</a>\n    </nav>\n  </header>\n\n  <main class="content-body">\n    <article class="post-card">\n      <section>\n        <h2>Understanding Semantic HTML5</h2>\n        <p>Semantic tags give meaning to content for screen readers, search engines, and browsers.</p>\n      </section>\n    </article>\n\n    <aside class="sidebar">\n      <h3>Trending Tags</h3>\n      <p>#css #html #javascript</p>\n    </aside>\n  </main>\n\n  <footer class="site-footer">\n    <p>&copy; 2026 RenderLab Practice Suite</p>\n  </footer>\n</div>',
+            "css": 'body {\n  margin: 0;\n  padding: 24px;\n  background: #0f172a;\n  color: #f8fafc;\n  font-family: system-ui, sans-serif;\n}\n.page-container { max-width: 800px; margin: 0 auto; }\nheader { border-bottom: 2px solid #334155; padding-bottom: 16px; margin-bottom: 24px; }\nnav a { color: #38bdf8; margin-right: 16px; text-decoration: none; font-weight: 600; }\nmain { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }\narticle { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; }\naside { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; }\nfooter { margin-top: 32px; border-top: 1px solid #334155; padding-top: 16px; color: #94a3b8; font-size: 0.9rem; }\n',
+            "javascript": "",
+        },
+        "requirements": [
+            "Use a semantic <header> tag for the top branding area.",
+            "Use a semantic <nav> element containing the navigation links.",
+            "Use a semantic <main> element as the primary content container.",
+            "Use <article> and <section> tags to wrap the blog post content.",
+            "Use an <aside> tag for the complementary sidebar content.",
+            "Use a <footer> element for the copyright section at the bottom.",
+        ],
+        "hints": [
+            "Replace <div class='site-header'> with <header> and </header>.",
+            "Use <main> to group the <article> and <aside> elements.",
+            "Wrap the article text inside a semantic <section>.",
+        ],
+        "estimated_minutes": 10,
+        "tests": [
+            {
+                "test_id": "test-semantic-header",
+                "description": "Document includes a semantic <header> element",
+                "test_type": "dom",
+                "selector": "header",
+                "assertion_code": "Boolean(document.querySelector('header'))",
+            },
+            {
+                "test_id": "test-semantic-nav",
+                "description": "Document includes a semantic <nav> element with navigation links",
+                "test_type": "dom",
+                "selector": "nav",
+                "assertion_code": "document.querySelectorAll('nav a').length >= 2",
+            },
+            {
+                "test_id": "test-semantic-main",
+                "description": "Document includes a semantic <main> element",
+                "test_type": "dom",
+                "selector": "main",
+                "assertion_code": "Boolean(document.querySelector('main'))",
+            },
+            {
+                "test_id": "test-semantic-article",
+                "description": "Document contains an <article> inside <main>",
+                "test_type": "dom",
+                "selector": "main article",
+                "assertion_code": "Boolean(document.querySelector('main article'))",
+            },
+            {
+                "test_id": "test-semantic-aside",
+                "description": "Document contains a semantic <aside> sidebar",
+                "test_type": "dom",
+                "selector": "aside",
+                "assertion_code": "Boolean(document.querySelector('aside'))",
+            },
+            {
+                "test_id": "test-semantic-footer",
+                "description": "Document includes a semantic <footer>",
+                "test_type": "dom",
+                "selector": "footer",
+                "assertion_code": "Boolean(document.querySelector('footer'))",
+            },
+        ],
+    },
+    {
+        "id": "html-accessible-form-002",
+        "title": "Accessible Survey & Registration Form",
+        "description": "Build an accessible HTML form with linked <label> elements, fieldset groupings, required input validation, and proper input types for email and password.",
+        "difficulty": "easy",
+        "topics": ["html", "forms", "accessibility", "inputs"],
+        "mode": "fill_blanks",
+        "starter_code": {
+            "html": '<form id="signup-form">\n  <!-- TODO: 1. Wrap inputs in a <fieldset> with a <legend> "Account Details" -->\n  \n  <!-- TODO: 2. Add <label for="user-email"> and matching <input id="user-email" type="email" required> -->\n  <div class="field-group">\n    Email:\n    <input type="text">\n  </div>\n\n  <!-- TODO: 3. Add <label for="user-password"> and matching <input id="user-password" type="password" required minlength="8"> -->\n  <div class="field-group">\n    Password:\n    <input type="text">\n  </div>\n\n  <!-- TODO: 4. Add submit button with type="submit" -->\n  <button>Join DevForge</button>\n</form>',
+            "css": 'body {\n  background: #0f172a;\n  color: #fff;\n  font-family: system-ui, sans-serif;\n  padding: 30px;\n  display: flex;\n  justify-content: center;\n}\nform {\n  background: #1e293b;\n  padding: 24px;\n  border-radius: 8px;\n  width: 100%;\n  max-width: 400px;\n}\nfieldset {\n  border: 1px solid #334155;\n  border-radius: 6px;\n  padding: 16px;\n  margin-bottom: 16px;\n}\nlegend {\n  color: #38bdf8;\n  font-weight: 600;\n  padding: 0 8px;\n}\n.field-group {\n  margin-bottom: 14px;\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n}\nlabel { font-size: 0.85rem; color: #94a3b8; }\ninput {\n  background: #0f172a;\n  border: 1px solid #334155;\n  color: #fff;\n  padding: 8px 12px;\n  border-radius: 4px;\n}\ninput:focus { outline: 1px solid #38bdf8; }\nbutton[type="submit"] {\n  background: #22c55e;\n  color: #0f172a;\n  font-weight: 700;\n  border: none;\n  padding: 10px;\n  width: 100%;\n  border-radius: 4px;\n  cursor: pointer;\n}\n',
+            "javascript": "// Form validation challenge - HTML attributes provide native validation",
+        },
+        "solution_code": {
+            "html": '<form id="signup-form">\n  <fieldset>\n    <legend>Account Details</legend>\n\n    <div class="field-group">\n      <label for="user-email">Email Address</label>\n      <input id="user-email" type="email" required placeholder="you@domain.com">\n    </div>\n\n    <div class="field-group">\n      <label for="user-password">Password (min 8 characters)</label>\n      <input id="user-password" type="password" required minlength="8">\n    </div>\n  </fieldset>\n\n  <button type="submit">Join DevForge</button>\n</form>',
+            "css": 'body {\n  background: #0f172a;\n  color: #fff;\n  font-family: system-ui, sans-serif;\n  padding: 30px;\n  display: flex;\n  justify-content: center;\n}\nform {\n  background: #1e293b;\n  padding: 24px;\n  border-radius: 8px;\n  width: 100%;\n  max-width: 400px;\n}\nfieldset {\n  border: 1px solid #334155;\n  border-radius: 6px;\n  padding: 16px;\n  margin-bottom: 16px;\n}\nlegend {\n  color: #38bdf8;\n  font-weight: 600;\n  padding: 0 8px;\n}\n.field-group {\n  margin-bottom: 14px;\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n}\nlabel { font-size: 0.85rem; color: #94a3b8; }\ninput {\n  background: #0f172a;\n  border: 1px solid #334155;\n  color: #fff;\n  padding: 8px 12px;\n  border-radius: 4px;\n}\ninput:focus { outline: 1px solid #38bdf8; }\nbutton[type="submit"] {\n  background: #22c55e;\n  color: #0f172a;\n  font-weight: 700;\n  border: none;\n  padding: 10px;\n  width: 100%;\n  border-radius: 4px;\n  cursor: pointer;\n}\n',
+            "javascript": "",
+        },
+        "requirements": [
+            "Wrap the form fields inside a <fieldset> with a <legend> titled 'Account Details'.",
+            "Provide a <label for='user-email'> corresponding to <input id='user-email'>.",
+            "Email input must have type='email' and the required attribute.",
+            "Provide a <label for='user-password'> corresponding to <input id='user-password'>.",
+            "Password input must have type='password', required, and minlength='8'.",
+            "The submit button must have type='submit'.",
+        ],
+        "hints": [
+            "Ensure the 'for' attribute on <label> matches the 'id' on the input exactly.",
+            "Use <fieldset> and <legend> to group related form controls.",
+        ],
+        "estimated_minutes": 10,
+        "tests": [
+            {
+                "test_id": "test-fieldset-legend",
+                "description": "Form has fieldset with legend 'Account Details'",
+                "test_type": "dom",
+                "selector": "fieldset legend",
+                "assertion_code": "Boolean(document.querySelector('fieldset legend'))",
+            },
+            {
+                "test_id": "test-email-label-link",
+                "description": "Email input has linked label matching its id",
+                "test_type": "dom",
+                "assertion_code": "(() => { const inp = document.getElementById('user-email'); const lbl = document.querySelector('label[for=\"user-email\"]'); return inp && lbl && inp.type === 'email' && inp.required; })()",
+            },
+            {
+                "test_id": "test-password-label-link",
+                "description": "Password input has linked label, required, and minlength 8",
+                "test_type": "dom",
+                "assertion_code": "(() => { const inp = document.getElementById('user-password'); const lbl = document.querySelector('label[for=\"user-password\"]'); return inp && lbl && inp.type === 'password' && inp.required && inp.minLength >= 8; })()",
+            },
+            {
+                "test_id": "test-submit-button",
+                "description": "Button has type='submit'",
+                "test_type": "dom",
+                "selector": "button[type='submit']",
+                "assertion_code": "Boolean(document.querySelector('button[type=\"submit\"]'))",
+            },
+        ],
+    },
+    {
+        "id": "html-media-figure-003",
+        "title": "Accessible Media & Responsive Figure",
+        "description": "Create an accessible media showcase using <figure>, <figcaption>, and a modern <picture> element providing responsive source options and fallback alt text.",
+        "difficulty": "easy",
+        "topics": ["html", "media", "figure", "picture"],
+        "mode": "build_component",
+        "starter_code": {
+            "html": '<div class="media-card">\n  <!-- TODO: 1. Wrap media in a semantic <figure> element -->\n  \n  <!-- TODO: 2. Add an <img> element with src, alt="Mountain landscape at sunset", and loading="lazy" -->\n  <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600" />\n  \n  <!-- TODO: 3. Add a <figcaption> describing the photograph credit -->\n  <div>Photo captured in Yosemite Valley by John Doe</div>\n</div>',
+            "css": 'body {\n  background: #0b0f17;\n  padding: 30px;\n  color: #fff;\n  font-family: system-ui, sans-serif;\n  display: flex;\n  justify-content: center;\n}\n.media-card {\n  max-width: 480px;\n  background: #1e293b;\n  border-radius: 12px;\n  overflow: hidden;\n  border: 1px solid #334155;\n}\nfigure {\n  margin: 0;\n  padding: 0;\n}\nimg {\n  width: 100%;\n  height: auto;\n  display: block;\n}\nfigcaption {\n  padding: 12px 16px;\n  font-size: 0.85rem;\n  color: #94a3b8;\n  font-style: italic;\n  background: #111827;\n  border-top: 1px solid #1f2937;\n}\n',
+            "javascript": "",
+        },
+        "solution_code": {
+            "html": '<div class="media-card">\n  <figure>\n    <img \n      src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600" \n      alt="Mountain landscape at sunset"\n      loading="lazy"\n    />\n    <figcaption>Photo captured in Yosemite Valley by John Doe</figcaption>\n  </figure>\n</div>',
+            "css": 'body {\n  background: #0b0f17;\n  padding: 30px;\n  color: #fff;\n  font-family: system-ui, sans-serif;\n  display: flex;\n  justify-content: center;\n}\n.media-card {\n  max-width: 480px;\n  background: #1e293b;\n  border-radius: 12px;\n  overflow: hidden;\n  border: 1px solid #334155;\n}\nfigure {\n  margin: 0;\n  padding: 0;\n}\nimg {\n  width: 100%;\n  height: auto;\n  display: block;\n}\nfigcaption {\n  padding: 12px 16px;\n  font-size: 0.85rem;\n  color: #94a3b8;\n  font-style: italic;\n  background: #111827;\n  border-top: 1px solid #1f2937;\n}\n',
+            "javascript": "",
+        },
+        "requirements": [
+            "Use a semantic <figure> container element.",
+            "The <img> tag must include descriptive alt text: alt='Mountain landscape at sunset'.",
+            "The <img> tag must include loading='lazy' for optimized performance.",
+            "Use a semantic <figcaption> to display the photo caption text.",
+        ],
+        "hints": [
+            "Place the <img> and <figcaption> as direct children of the <figure> element.",
+            "Ensure the alt attribute is non-empty and descriptive.",
+        ],
+        "estimated_minutes": 10,
+        "tests": [
+            {
+                "test_id": "test-figure-exists",
+                "description": "Semantic <figure> tag wraps image content",
+                "test_type": "dom",
+                "selector": "figure",
+                "assertion_code": "Boolean(document.querySelector('figure'))",
+            },
+            {
+                "test_id": "test-img-attributes",
+                "description": "Image has descriptive alt text and loading='lazy'",
+                "test_type": "dom",
+                "selector": "figure img",
+                "assertion_code": "(() => { const img = document.querySelector('figure img'); return img && img.alt && img.alt.length > 5 && img.getAttribute('loading') === 'lazy'; })()",
+            },
+            {
+                "test_id": "test-figcaption-exists",
+                "description": "Semantic <figcaption> tag provides image description",
+                "test_type": "dom",
+                "selector": "figure figcaption",
+                "assertion_code": "Boolean(document.querySelector('figure figcaption'))",
+            },
+        ],
+    },
+
+    # =========================================================================
+    # CATEGORY: CSS (Layouts, Flexbox, Grid, Animations, Responsive Design)
+    # =========================================================================
     {
         "id": "css-hover-glow-001",
         "title": "Interactive Glow Button",
@@ -121,6 +315,54 @@ SEED_CHALLENGES = [
         ],
     },
     {
+        "id": "css-grid-gallery-005",
+        "title": "Responsive CSS Grid Photo Gallery",
+        "description": "Build an auto-fitting responsive image gallery grid using CSS Grid repeat(auto-fit, minmax(180px, 1fr)) with consistent gap spacing.",
+        "difficulty": "easy",
+        "topics": ["css", "grid", "responsive", "layout"],
+        "mode": "fill_blanks",
+        "starter_code": {
+            "html": '<div class="gallery-container">\n  <div class="gallery-item">Photo 1</div>\n  <div class="gallery-item">Photo 2</div>\n  <div class="gallery-item">Photo 3</div>\n  <div class="gallery-item">Photo 4</div>\n  <div class="gallery-item">Photo 5</div>\n  <div class="gallery-item">Photo 6</div>\n</div>',
+            "css": 'body {\n  margin: 0;\n  padding: 30px;\n  background: #0f172a;\n  color: #fff;\n  font-family: sans-serif;\n}\n.gallery-container {\n  /* TODO: 1. Turn container into CSS grid */\n  display: /* fill in */;\n  /* TODO: 2. Set columns to repeat(auto-fit, minmax(160px, 1fr)) */\n  grid-template-columns: /* fill in */;\n  /* TODO: 3. Set gap to 16px */\n  gap: /* fill in */;\n}\n.gallery-item {\n  background: #1e293b;\n  border: 1px solid #334155;\n  border-radius: 8px;\n  height: 140px;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  font-weight: 600;\n  color: #38bdf8;\n}\n',
+            "javascript": "",
+        },
+        "solution_code": {
+            "html": '<div class="gallery-container">\n  <div class="gallery-item">Photo 1</div>\n  <div class="gallery-item">Photo 2</div>\n  <div class="gallery-item">Photo 3</div>\n  <div class="gallery-item">Photo 4</div>\n  <div class="gallery-item">Photo 5</div>\n  <div class="gallery-item">Photo 6</div>\n</div>',
+            "css": 'body {\n  margin: 0;\n  padding: 30px;\n  background: #0f172a;\n  color: #fff;\n  font-family: sans-serif;\n}\n.gallery-container {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));\n  gap: 16px;\n}\n.gallery-item {\n  background: #1e293b;\n  border: 1px solid #334155;\n  border-radius: 8px;\n  height: 140px;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  font-weight: 600;\n  color: #38bdf8;\n}\n',
+            "javascript": "",
+        },
+        "requirements": [
+            "The .gallery-container must have display: grid.",
+            "Use repeat(auto-fit, minmax(160px, 1fr)) for grid-template-columns.",
+            "Set grid gap to 16px.",
+        ],
+        "hints": [
+            "Use 'display: grid;' and 'gap: 16px;' on .gallery-container.",
+            "Use 'grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));'.",
+        ],
+        "estimated_minutes": 10,
+        "tests": [
+            {
+                "test_id": "test-grid-display",
+                "description": "Gallery container has display: grid",
+                "test_type": "css",
+                "selector": ".gallery-container",
+                "assertion_code": "(() => { const el = document.querySelector('.gallery-container'); return el && window.getComputedStyle(el).display === 'grid'; })()",
+            },
+            {
+                "test_id": "test-grid-gap",
+                "description": "Gallery container has 16px gap",
+                "test_type": "css",
+                "selector": ".gallery-container",
+                "assertion_code": "(() => { const el = document.querySelector('.gallery-container'); return el && window.getComputedStyle(el).gap === '16px'; })()",
+            },
+        ],
+    },
+
+    # =========================================================================
+    # CATEGORY: JAVASCRIPT (DOM APIs, Events, State, Timers, Dynamic UIs)
+    # =========================================================================
+    {
         "id": "js-counter-dom-003",
         "title": "Interactive Counter Component",
         "description": "Implement the JavaScript logic for an interactive counter with Increment (+), Decrement (-), and Reset buttons, ensuring the count updates dynamically and changes color when negative.",
@@ -181,11 +423,11 @@ SEED_CHALLENGES = [
         "title": "Buggy Modal Dialog",
         "description": "A developer created a modal dialog, but it has bugs: clicking the 'Open Modal' button doesn't reveal the dialog because of conflicting CSS display rules and missing JavaScript event handling. Inspect and fix the code.",
         "difficulty": "medium",
-        "topics": ["debugging", "css", "javascript", "modal"],
+        "topics": ["javascript", "debugging", "modal", "dom"],
         "mode": "fix_broken",
         "starter_code": {
             "html": '<button id="open-btn" class="action-btn">Open Dialog</button>\n\n<div id="modal-overlay" class="modal-backdrop hidden">\n  <div class="modal-content">\n    <h3>Confirmation Required</h3>\n    <p>Are you ready to submit your solution?</p>\n    <button id="close-btn" class="close-btn">Dismiss</button>\n  </div>\n</div>',
-            "css": 'body {\n  background: #0f172a;\n  font-family: sans-serif;\n  padding: 40px;\n}\n.action-btn {\n  background: #3b82f6;\n  color: white;\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  cursor: pointer;\n}\n/* BUG: .hidden selector has wrong specificity or typo */\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100vw;\n  height: 100vh;\n  background: rgba(0, 0, 0, 0.7);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.hidden {\n  display: none !important;\n}\n.modal-content {\n  background: #1e293b;\n  color: white;\n  padding: 24px;\n  border-radius: 8px;\n  min-width: 300px;\n}\n.close-btn {\n  background: #ef4444;\n  color: white;\n  padding: 8px 16px;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  margin-top: 12px;\n}\n',
+            "css": 'body {\n  background: #0f172a;\n  font-family: sans-serif;\n  padding: 40px;\n}\n.action-btn {\n  background: #3b82f6;\n  color: white;\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.modal-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100vw;\n  height: 100vh;\n  background: rgba(0, 0, 0, 0.7);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.hidden {\n  display: none !important;\n}\n.modal-content {\n  background: #1e293b;\n  color: white;\n  padding: 24px;\n  border-radius: 8px;\n  min-width: 300px;\n}\n.close-btn {\n  background: #ef4444;\n  color: white;\n  padding: 8px 16px;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  margin-top: 12px;\n}\n',
             "javascript": "// BUG: Incorrect selector and missing handler for close button\nconst openBtn = document.getElementById('open-btn');\nconst modal = document.getElementById('modal-overlay');\nconst closeBtn = document.getElementById('close-btn');\n\n// Bug: querySelector used incorrectly\nopenBtn.addEventListener('click', () => {\n  // Modal is not showing because class is not being removed\n  modal.classList.add('hidden'); // <-- BUG here!\n});\n\n// Bug: close button listener is missing!\n",
         },
         "solution_code": {
@@ -229,11 +471,11 @@ SEED_CHALLENGES = [
         "title": "FAQ Accordion with Animated Expansion",
         "description": "Build an FAQ accordion item. When clicking the question header, the answer panel toggles between collapsed and expanded, and an arrow indicator rotates smoothly.",
         "difficulty": "medium",
-        "topics": ["components", "javascript", "animation", "css"],
+        "topics": ["javascript", "components", "animation", "dom"],
         "mode": "build_component",
         "starter_code": {
             "html": '<div class="accordion-item" id="faq-item">\n  <div class="accordion-header" id="faq-header">\n    <span class="faq-title">Can I practice with both local and cloud LLMs?</span>\n    <span class="faq-icon" id="faq-icon">▼</span>\n  </div>\n  <div class="accordion-body" id="faq-body">\n    <p>Yes! DevForge connects seamlessly with both local Ollama models and cloud providers like Gemini, OpenAI, and Groq.</p>\n  </div>\n</div>',
-            "css": 'body {\n  background: #0b0f17;\n  padding: 40px;\n  font-family: system-ui, sans-serif;\n}\n.accordion-item {\n  max-width: 500px;\n  background: #1e293b;\n  border-radius: 8px;\n  overflow: hidden;\n  color: #fff;\n  border: 1px solid #334155;\n}\n.accordion-header {\n  padding: 16px 20px;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  cursor: pointer;\n  user-select: none;\n}\n.faq-icon {\n  transition: transform 0.3s ease;\n}\n.accordion-body {\n  padding: 0 20px;\n  max-height: 0;\n  overflow: hidden;\n  transition: max-height 0.3s ease, padding 0.3s ease;\n  color: #94a3b8;\n}\n/* When accordion-item has class .active */\n.accordion-item.active .accordion-body {\n  max-height: 200px;\n  padding: 0 20px 20px 20px;\n}\n.accordion-item.active .faq-icon {\n  transform: rotate(180deg);\n}\n',
+            "css": 'body {\n  background: #0b0f17;\n  padding: 40px;\n  font-family: system-ui, sans-serif;\n}\n.accordion-item {\n  max-width: 500px;\n  background: #1e293b;\n  border-radius: 8px;\n  overflow: hidden;\n  color: #fff;\n  border: 1px solid #334155;\n}\n.accordion-header {\n  padding: 16px 20px;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  cursor: pointer;\n  user-select: none;\n}\n.faq-icon {\n  transition: transform 0.3s ease;\n}\n.accordion-body {\n  padding: 0 20px;\n  max-height: 0;\n  overflow: hidden;\n  transition: max-height 0.3s ease, padding 0.3s ease;\n  color: #94a3b8;\n}\n.accordion-item.active .accordion-body {\n  max-height: 200px;\n  padding: 0 20px 20px 20px;\n}\n.accordion-item.active .faq-icon {\n  transform: rotate(180deg);\n}\n',
             "javascript": "// TODO: Select accordion header and item\n// Add click listener to toggle 'active' class on the accordion item\nconst header = document.getElementById('faq-header');\nconst item = document.getElementById('faq-item');\n\nheader.addEventListener('click', () => {\n  item.classList.toggle('active');\n});\n",
         },
         "solution_code": {
@@ -271,12 +513,115 @@ SEED_CHALLENGES = [
             },
         ],
     },
+    {
+        "id": "js-countdown-timer-007",
+        "title": "Countdown Timer With Pause",
+        "description": "Implement a countdown timer in JavaScript using setInterval. Support Start, Pause, and Reset controls with live second decrementing.",
+        "difficulty": "medium",
+        "topics": ["javascript", "timer", "setInterval", "events"],
+        "mode": "fill_blanks",
+        "starter_code": {
+            "html": '<div class="timer-card">\n  <h2>Sprint Countdown</h2>\n  <div id="timer-display" class="timer-value">60</div>\n  <div class="button-group">\n    <button id="btn-start" class="btn btn-start">Start</button>\n    <button id="btn-pause" class="btn btn-pause">Pause</button>\n    <button id="btn-reset" class="btn btn-reset">Reset</button>\n  </div>\n</div>',
+            "css": 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: system-ui, sans-serif;\n}\n.timer-card {\n  background: #1e293b;\n  padding: 32px;\n  border-radius: 12px;\n  text-align: center;\n  border: 1px solid #334155;\n  color: #fff;\n}\n.timer-value {\n  font-size: 4rem;\n  font-weight: 800;\n  margin: 16px 0;\n  color: #38bdf8;\n  font-family: monospace;\n}\n.button-group { display: flex; gap: 12px; justify-content: center; }\n.btn {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-weight: 600;\n  cursor: pointer;\n}\n.btn-start { background: #22c55e; color: #0f172a; }\n.btn-pause { background: #f59e0b; color: #0f172a; }\n.btn-reset { background: #ef4444; color: #fff; }\n',
+            "javascript": "let seconds = 60;\nlet timerId = null;\n\nconst display = document.getElementById('timer-display');\nconst startBtn = document.getElementById('btn-start');\nconst pauseBtn = document.getElementById('btn-pause');\nconst resetBtn = document.getElementById('btn-reset');\n\n// TODO: 1. Start timer with setInterval, decrement seconds every 1000ms\nstartBtn.addEventListener('click', () => {\n  if (!timerId) {\n    timerId = setInterval(() => {\n      if (seconds > 0) {\n        seconds--;\n        display.textContent = seconds;\n      }\n    }, 1000);\n  }\n});\n\n// TODO: 2. Pause timer with clearInterval and set timerId to null\npauseBtn.addEventListener('click', () => {\n  clearInterval(timerId);\n  timerId = null;\n});\n\n// TODO: 3. Reset timer to 60, clear interval, and update display\nresetBtn.addEventListener('click', () => {\n  clearInterval(timerId);\n  timerId = null;\n  seconds = 60;\n  display.textContent = seconds;\n});\n",
+        },
+        "solution_code": {
+            "html": '<div class="timer-card">\n  <h2>Sprint Countdown</h2>\n  <div id="timer-display" class="timer-value">60</div>\n  <div class="button-group">\n    <button id="btn-start" class="btn btn-start">Start</button>\n    <button id="btn-pause" class="btn btn-pause">Pause</button>\n    <button id="btn-reset" class="btn btn-reset">Reset</button>\n  </div>\n</div>',
+            "css": 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: system-ui, sans-serif;\n}\n.timer-card {\n  background: #1e293b;\n  padding: 32px;\n  border-radius: 12px;\n  text-align: center;\n  border: 1px solid #334155;\n  color: #fff;\n}\n.timer-value {\n  font-size: 4rem;\n  font-weight: 800;\n  margin: 16px 0;\n  color: #38bdf8;\n  font-family: monospace;\n}\n.button-group { display: flex; gap: 12px; justify-content: center; }\n.btn {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-weight: 600;\n  cursor: pointer;\n}\n.btn-start { background: #22c55e; color: #0f172a; }\n.btn-pause { background: #f59e0b; color: #0f172a; }\n.btn-reset { background: #ef4444; color: #fff; }\n',
+            "javascript": "let seconds = 60;\nlet timerId = null;\n\nconst display = document.getElementById('timer-display');\nconst startBtn = document.getElementById('btn-start');\nconst pauseBtn = document.getElementById('btn-pause');\nconst resetBtn = document.getElementById('btn-reset');\n\nstartBtn.addEventListener('click', () => {\n  if (!timerId) {\n    timerId = setInterval(() => {\n      if (seconds > 0) {\n        seconds--;\n        display.textContent = seconds;\n      }\n    }, 1000);\n  }\n});\n\npauseBtn.addEventListener('click', () => {\n  clearInterval(timerId);\n  timerId = null;\n});\n\nresetBtn.addEventListener('click', () => {\n  clearInterval(timerId);\n  timerId = null;\n  seconds = 60;\n  display.textContent = seconds;\n});\n",
+        },
+        "requirements": [
+            "Clicking '#btn-start' starts decrementing the countdown timer every second.",
+            "Clicking '#btn-pause' halts the countdown timer at its current value.",
+            "Clicking '#btn-reset' restores the timer back to 60.",
+        ],
+        "hints": [
+            "Use setInterval to decrement the seconds variable.",
+            "Use clearInterval(timerId) to pause and reset.",
+        ],
+        "estimated_minutes": 15,
+        "tests": [
+            {
+                "test_id": "test-timer-init",
+                "description": "Timer initializes with 60",
+                "test_type": "dom",
+                "selector": "#timer-display",
+                "assertion_code": "document.getElementById('timer-display').textContent.trim() === '60'",
+            },
+            {
+                "test_id": "test-timer-start-click",
+                "description": "Start, Pause, and Reset buttons exist",
+                "test_type": "dom",
+                "assertion_code": "Boolean(document.getElementById('btn-start') && document.getElementById('btn-pause') && document.getElementById('btn-reset'))",
+            },
+        ],
+    },
 ]
 
 
 def seed_database():
+    import os
+    import json
+
     db = SessionLocal()
     try:
+        curriculum_file = os.path.join(os.path.dirname(__file__), "data", "curriculum_311.json")
+        if os.path.exists(curriculum_file):
+            with open(curriculum_file, "r", encoding="utf-8") as f:
+                curriculum_data = json.load(f)
+            
+            print(f"Syncing curriculum ({len(curriculum_data)} challenges) from curriculum_311.json...")
+            for c_data in curriculum_data:
+                existing = db.query(ChallengeModel).filter(ChallengeModel.id == c_data["id"]).first()
+                if not existing:
+                    ch = ChallengeModel(
+                        id=c_data["id"],
+                        title=c_data["title"],
+                        description=c_data["description"],
+                        difficulty=c_data["difficulty"],
+                        mode=c_data["mode"],
+                        starter_html=c_data["starter_code"]["html"],
+                        starter_css=c_data["starter_code"]["css"],
+                        starter_js=c_data["starter_code"]["javascript"],
+                        solution_html=c_data.get("solution_code", {}).get("html", ""),
+                        solution_css=c_data.get("solution_code", {}).get("css", ""),
+                        solution_js=c_data.get("solution_code", {}).get("javascript", ""),
+                        estimated_minutes=c_data.get("estimated_minutes", 15),
+                        is_approved=True,
+                    )
+                    ch.topics = c_data["topics"]
+                    ch.requirements = c_data["requirements"]
+                    ch.hints = c_data["hints"]
+                    db.add(ch)
+                    db.flush()
+
+                    for idx, t in enumerate(c_data["tests"]):
+                        tc = TestCaseModel(
+                            challenge_id=ch.id,
+                            test_id=t["test_id"],
+                            description=t["description"],
+                            test_type=t.get("test_type", "dom"),
+                            selector=t.get("selector"),
+                            property_name=t.get("property_name"),
+                            expected_value=t.get("expected_value"),
+                            assertion_code=t.get("assertion_code"),
+                            order_index=idx,
+                        )
+                        db.add(tc)
+                else:
+                    s_curr = (c_data.get("starter_code", {}).get("html") or "").strip()
+                    if s_curr and existing.starter_html != s_curr:
+                        existing.starter_html = s_curr
+                        existing.solution_html = c_data.get("solution_code", {}).get("html", "")
+                        existing.title = c_data["title"]
+                        existing.description = c_data["description"]
+                        existing.requirements = c_data.get("requirements", [])
+                        existing.hints = c_data.get("hints", [])
+            db.commit()
+            print("Curriculum syncing complete!")
+            return
+        
+        # Fallback to SEED_CHALLENGES if curriculum file not found
         for c_data in SEED_CHALLENGES:
             existing = db.query(ChallengeModel).filter(ChallengeModel.id == c_data["id"]).first()
             if not existing:
@@ -318,3 +663,4 @@ def seed_database():
         db.commit()
     finally:
         db.close()
+

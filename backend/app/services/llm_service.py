@@ -1,10 +1,96 @@
 import json
 import re
 import time
-from typing import Dict, Any, Optional, Tuple
+import copy
+from pathlib import Path
+from typing import Dict, Any, Optional, Tuple, List
 import httpx
 from ..config import DEFAULT_LLM_CONFIG
 from ..models.database import SessionLocal, LLMSettingModel
+
+_CURRICULUM_CACHE: Optional[List[Dict[str, Any]]] = None
+
+
+def get_curriculum_challenges() -> List[Dict[str, Any]]:
+    global _CURRICULUM_CACHE
+    if _CURRICULUM_CACHE is None:
+        curr_path = Path(__file__).resolve().parent.parent / "data" / "curriculum_311.json"
+        if curr_path.exists():
+            try:
+                with open(curr_path, "r", encoding="utf-8") as f:
+                    _CURRICULUM_CACHE = json.load(f)
+            except Exception as e:
+                print(f"[LLMService] Error loading curriculum_311.json: {e}")
+                _CURRICULUM_CACHE = []
+        else:
+            _CURRICULUM_CACHE = []
+    return _CURRICULUM_CACHE
+
+
+def find_matching_curriculum_challenge(topic: str, category: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    curr = get_curriculum_challenges()
+    if not curr:
+        return None
+
+    # 1. Match by challenge sequence number e.g. #25 or #1
+    m = re.search(r'#(\d+)', topic)
+    if m:
+        num = int(m.group(1))
+        for c in curr:
+            cm = re.search(r'#(\d+)', c.get("title", ""))
+            if cm and int(cm.group(1)) == num:
+                return copy.deepcopy(c)
+
+    # 2. Match by clean title (case-insensitive substring)
+    clean_t = re.sub(r'^#\d+\.\s*', '', topic).lower().strip()
+    if clean_t:
+        for c in curr:
+            c_title = re.sub(r'^#\d+\.\s*', '', c.get("title", "")).lower().strip()
+            if clean_t == c_title or (len(clean_t) > 6 and clean_t in c_title):
+                return copy.deepcopy(c)
+
+    # 3. Match by major keywords
+    words = [
+        w for w in re.findall(r'[a-zA-Z]{4,}', clean_t)
+        if w not in ("challenge", "practice", "markup", "component", "using", "with", "form", "card")
+    ]
+    if len(words) >= 2:
+        for c in curr:
+            c_str = (c.get("title", "") + " " + c.get("description", "")).lower()
+            if all(w in c_str for w in words[:2]):
+                return copy.deepcopy(c)
+
+    return None
+
+
+def adapt_curriculum_challenge(
+    base: Dict[str, Any],
+    topic: str,
+    difficulty: str,
+    mode: str,
+    learning_objective: Optional[str] = None,
+) -> Dict[str, Any]:
+    adapted = copy.deepcopy(base)
+    clean_id = re.sub(r'[^a-z0-9]+', '-', base.get("id", "challenge")).strip('-')
+    adapted["id"] = f"gen-{clean_id}-{int(time.time()) % 10000}"
+    adapted["difficulty"] = difficulty
+    adapted["mode"] = mode
+
+    if learning_objective and learning_objective.strip():
+        adapted["description"] = f"{adapted.get('description', '')} Note: {learning_objective.strip()}"
+
+    # If mode is fill_blanks, ensure starter_code has blanks and does not reveal solution
+    if mode == "fill_blanks":
+        s_html = (adapted.get("starter_code", {}).get("html") or "").strip()
+        sol_html = (adapted.get("solution_code", {}).get("html") or "").strip()
+        if (s_html == sol_html or ("TODO" not in s_html and "todo" not in s_html)) and sol_html:
+            from .challenge_validator import ChallengeValidator
+            adapted["starter_code"]["html"] = ChallengeValidator._create_html_blanks(
+                sol_html, adapted.get("title", "")
+            )
+
+    return adapted
+
 
 
 def get_current_llm_config() -> Dict[str, Any]:
@@ -287,6 +373,7 @@ class LLMService:
         mode: str,
         learning_objective: Optional[str] = None,
         custom_prompt: Optional[str] = None,
+        category: Optional[str] = None,
     ) -> Dict[str, Any]:
         system_instruction = (
             "You are an expert Frontend Lead Engineer and educator who creates high-quality coding challenges. "
@@ -328,16 +415,61 @@ class LLMService:
             "CRITICAL: 'starter_code' MUST BE INCOMPLETE! Leave the key CSS properties or JS logic for the user to write, marked with /* TODO */ blanks. 'solution_code' must be the complete, working solution."
         )
 
+        mode_specs = {
+            "fill_blanks": (
+                "FILL_BLANKS MODE: Provide an incomplete code template with scaffolding in place. "
+                "Crucial elements (e.g., semantic tags, key CSS layout properties, or core JS logic) MUST be omitted "
+                "and clearly marked with '<!-- TODO: instruction -->' or '/* TODO: instruction */' or '// TODO: instruction'. "
+                "The user fills in the blanks. Do NOT provide the full solution in starter_code!"
+            ),
+            "build_component": (
+                "BUILD_COMPONENT MODE: Provide minimal skeletal starter code (e.g., outer wrapper and sample data). "
+                "The user must architect and build the entire component from scratch matching the requirements "
+                "and target solution output. starter_code must be skeletal; solution_code must be the complete, working component."
+            ),
+            "fix_broken": (
+                "FIX_BROKEN MODE: Provide realistic, complete-looking code that contains 1 to 2 intentional, subtle bugs "
+                "(e.g., broken accessibility attributes, layout overflow, missing flex/grid alignment, or event/state bug in JS). "
+                "starter_code contains the bug; solution_code contains the corrected bug-free implementation."
+            ),
+            "recreate_page": (
+                "RECREATE_PAGE MODE: Provide a complete, polished, pixel-perfect target design in solution_code. "
+                "The starter_code should be a clean, minimal starting canvas. The user's objective is to study the "
+                "Expected Target Output preview and recreate the exact design pixel-for-pixel."
+            ),
+        }
+        mode_detail = mode_specs.get(mode, mode_specs["fill_blanks"])
+
+        # Check if an authoritative curriculum blueprint matches this topic
+        base_blueprint = find_matching_curriculum_challenge(topic, category)
+
+        # If user did NOT specify a custom prompt and we have an authoritative blueprint,
+        # we can provide the curated, high-quality, pre-tested challenge immediately!
+        if base_blueprint and not custom_prompt:
+            return adapt_curriculum_challenge(base_blueprint, topic, difficulty, mode, learning_objective)
+
+        # Build prompt for LLM
         user_content = (
             f"Generate a frontend coding challenge with:\n"
             f"- Topic: {topic}\n"
             f"- Difficulty: {difficulty}\n"
-            f"- Mode: {mode} ({'Provide HTML/CSS with marked TODO blanks for the user to write' if mode == 'fill_blanks' else 'Provide code containing a specific bug to fix' if mode == 'fix_broken' else 'Provide a component spec to build from scratch'})\n"
+            f"- Mode Specification: {mode_detail}\n"
         )
+        if category:
+            user_content += f"- Category Focus: Strictly emphasize {category.upper()} best practices and concepts.\n"
         if learning_objective:
             user_content += f"- Learning Objective: {learning_objective}\n"
         if custom_prompt:
             user_content += f"- Additional Instructions: {custom_prompt}\n"
+
+        if base_blueprint:
+            user_content += (
+                f"\nReference challenge blueprint for inspiration:\n"
+                f"- Title: {base_blueprint.get('title')}\n"
+                f"- Description: {base_blueprint.get('description')}\n"
+                f"- Reference Starter Code: {json.dumps(base_blueprint.get('starter_code', {}))}\n"
+                f"- Reference Solution Code: {json.dumps(base_blueprint.get('solution_code', {}))}\n"
+            )
 
         user_content += (
             "\nProvide 3 to 6 comprehensive, deterministic tests with clear assertion_code snippets "
@@ -364,12 +496,17 @@ class LLMService:
         except json.JSONDecodeError as err:
             match = re.search(r"(\{.*\})", clean_json_str, re.DOTALL)
             if match:
-                return json.loads(match.group(1))
-            # If JSON parsing failed, return smart template
+                try:
+                    return json.loads(match.group(1))
+                except Exception:
+                    pass
+            if base_blueprint:
+                return adapt_curriculum_challenge(base_blueprint, topic, difficulty, mode, learning_objective)
             return cls.generate_fallback_challenge(topic, difficulty, mode, learning_objective, custom_prompt)
         except Exception as err:
-            # When Ollama or Cloud LLM is offline/unreachable, gracefully provide a rich, deterministic challenge
-            print(f"[LLMService] Live LLM call failed ({str(err)}). Providing smart template challenge fallback.")
+            print(f"[LLMService] Live LLM call failed ({str(err)}). Providing smart challenge fallback.")
+            if base_blueprint:
+                return adapt_curriculum_challenge(base_blueprint, topic, difficulty, mode, learning_objective)
             return cls.generate_fallback_challenge(topic, difficulty, mode, learning_objective, custom_prompt)
 
     @classmethod
@@ -388,11 +525,11 @@ class LLMService:
         if "grid" in t_low or "gallery" in t_low:
             title = f"{clean_topic}: Responsive CSS Grid"
             desc = "Build a modern responsive card gallery layout using CSS Grid with auto-fit and minmax columns."
-            starter_html = '<div class="gallery-container">\n  <div class="gallery-card">Card 1</div>\n  <div class="gallery-card">Card 2</div>\n  <div class="gallery-card">Card 3</div>\n  <div class="gallery-card">Card 4</div>\n</div>'
+            starter_html = '<div class="gallery-container">\n  <!-- TODO: Populate responsive gallery cards -->\n  <div class="gallery-card">Card 1</div>\n  <div class="gallery-card">Card 2</div>\n  <div class="gallery-card">Card 3</div>\n  <div class="gallery-card">Card 4</div>\n</div>'
             starter_css = 'body {\n  background: #0f172a;\n  padding: 30px;\n  font-family: sans-serif;\n}\n.gallery-container {\n  /* =======================================================\n     TODO (Fill in the Blanks):\n     1. Set display: grid\n     2. Set grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))\n     3. Set gap: 20px\n     ======================================================= */\n}\n.gallery-card {\n  background: #1e293b;\n  color: #fff;\n  padding: 24px;\n  border-radius: 8px;\n  border: 1px solid #334155;\n}'
             starter_js = "// Optional: Add click or filter behavior"
 
-            solution_html = starter_html
+            solution_html = '<div class="gallery-container">\n  <div class="gallery-card">Card 1</div>\n  <div class="gallery-card">Card 2</div>\n  <div class="gallery-card">Card 3</div>\n  <div class="gallery-card">Card 4</div>\n</div>'
             solution_css = 'body {\n  background: #0f172a;\n  padding: 30px;\n  font-family: sans-serif;\n}\n.gallery-container {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n  gap: 20px;\n}\n.gallery-card {\n  background: #1e293b;\n  color: #fff;\n  padding: 24px;\n  border-radius: 8px;\n  border: 1px solid #334155;\n}'
             solution_js = ""
 
@@ -430,7 +567,7 @@ class LLMService:
             starter_css = 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: sans-serif;\n}\n.switch {\n  width: 60px;\n  height: 32px;\n  background: #334155;\n  border-radius: 16px;\n  position: relative;\n  border: none;\n  cursor: pointer;\n  transition: background 0.3s ease;\n}\n.switch-handle {\n  width: 24px;\n  height: 24px;\n  background: white;\n  border-radius: 50%;\n  position: absolute;\n  top: 4px;\n  left: 4px;\n  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n}\n/* ========================================================\n   TODO: Fill in the blanks below!\n   1. Add .switch.active rule with background: #22c55e\n   2. Add .switch.active .switch-handle with transform: translateX(28px)\n   ======================================================== */\n\n.status { color: #fff; margin-left: 12px; }'
             starter_js = "const btn = document.getElementById('toggle-switch');\nconst label = document.getElementById('status-label');\n\nbtn.addEventListener('click', () => {\n  // TODO: 1. Toggle 'active' class on btn\n  // TODO: 2. Set label.textContent to 'On' if active, else 'Off'\n  // TODO: 3. Set aria-checked attribute to 'true' or 'false'\n});"
 
-            solution_html = starter_html
+            solution_html = '<div class="switch-wrapper">\n  <button id="toggle-switch" class="switch" role="switch" aria-checked="false">\n    <span class="switch-handle"></span>\n  </button>\n  <span id="status-label" class="status">Off</span>\n</div>'
             solution_css = 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: sans-serif;\n}\n.switch {\n  width: 60px;\n  height: 32px;\n  background: #334155;\n  border-radius: 16px;\n  position: relative;\n  border: none;\n  cursor: pointer;\n  transition: background 0.3s ease;\n}\n.switch-handle {\n  width: 24px;\n  height: 24px;\n  background: white;\n  border-radius: 50%;\n  position: absolute;\n  top: 4px;\n  left: 4px;\n  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n}\n.switch.active {\n  background: #22c55e;\n}\n.switch.active .switch-handle {\n  transform: translateX(28px);\n}\n.status { color: #fff; margin-left: 12px; }'
             solution_js = "const btn = document.getElementById('toggle-switch');\nconst label = document.getElementById('status-label');\n\nbtn.addEventListener('click', () => {\n  const isActive = btn.classList.toggle('active');\n  label.textContent = isActive ? 'On' : 'Off';\n  btn.setAttribute('aria-checked', String(isActive));\n});"
 
@@ -462,13 +599,16 @@ class LLMService:
         else:
             title = f"{clean_topic} Challenge"
             desc = f"Build and style an interactive {topic} component with clean DOM structure, modern layout, and responsive styles."
-            starter_html = f'<div class="component-card">\n  <h2 class="title">{clean_topic}</h2>\n  <p class="desc">Practice building this component with clean styling and layout.</p>\n  <button id="action-btn" class="action-btn">Interact</button>\n  <div id="output-box" class="output">Ready</div>\n</div>'
-            starter_css = 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: sans-serif;\n}\n.component-card {\n  background: #1e293b;\n  color: #fff;\n  padding: 32px;\n  border-radius: 12px;\n  max-width: 450px;\n  text-align: center;\n  box-shadow: 0 10px 25px rgba(0,0,0,0.3);\n}\n.title { font-size: 1.5rem; margin-top: 0; color: #38bdf8; }\n.desc { color: #94a3b8; font-size: 0.9rem; }\n.action-btn {\n  background: #3b82f6;\n  color: #fff;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 600;\n  /* TODO: Add transition for hover effect */\n}\n/* TODO: Add .action-btn:hover styles with background #2563eb */\n.output { margin-top: 16px; font-weight: 500; color: #22c55e; }'
-            starter_js = "const btn = document.getElementById('action-btn');\nconst out = document.getElementById('output-box');\n\nbtn.addEventListener('click', () => {\n  // TODO: Update out.textContent to 'Completed!'\n});"
+            if mode == "fill_blanks":
+                starter_html = f'<div class="component-card">\n  <!-- TODO: 1. Add <h2 class=\"title\">{clean_topic}</h2> -->\n  <p class=\"desc\">Practice building this component with clean styling and layout.</p>\n  <!-- TODO: 2. Add an interactive button with id=\"action-btn\" and class=\"action-btn\" -->\n  <div id=\"output-box\" class=\"output\">Ready</div>\n</div>'
+            else:
+                starter_html = f'<div class="component-card">\n  <div id="root-container"></div>\n</div>'
+            starter_css = 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: sans-serif;\n}\n.component-card {\n  background: #1e293b;\n  color: #fff;\n  padding: 32px;\n  border-radius: 12px;\n  max-width: 450px;\n  text-align: center;\n  box-shadow: 0 10px 25px rgba(0,0,0,0.3);\n}\n.title { font-size: 1.5rem; margin-top: 0; color: #38bdf8; }\n.desc { color: #94a3b8; font-size: 0.9rem; }\n/* ========================================================\n   TODO: Fill in the button styles below!\n   1. Set background: #3b82f6, color: #fff, padding: 10px 20px\n   2. Add hover effect with background: #2563eb\n   ======================================================== */\n.output { margin-top: 16px; font-weight: 500; color: #22c55e; }'
+            starter_js = "const btn = document.getElementById('action-btn');\nconst out = document.getElementById('output-box');\n\nif (btn) {\n  btn.addEventListener('click', () => {\n    // TODO: Update out.textContent to 'Completed!'\n  });\n}"
 
-            solution_html = starter_html
+            solution_html = f'<div class="component-card">\n  <h2 class="title">{clean_topic}</h2>\n  <p class="desc">Practice building this component with clean styling and layout.</p>\n  <button id="action-btn" class="action-btn">Interact</button>\n  <div id="output-box" class="output">Ready</div>\n</div>'
             solution_css = 'body {\n  background: #0f172a;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  font-family: sans-serif;\n}\n.component-card {\n  background: #1e293b;\n  color: #fff;\n  padding: 32px;\n  border-radius: 12px;\n  max-width: 450px;\n  text-align: center;\n  box-shadow: 0 10px 25px rgba(0,0,0,0.3);\n}\n.title { font-size: 1.5rem; margin-top: 0; color: #38bdf8; }\n.desc { color: #94a3b8; font-size: 0.9rem; }\n.action-btn {\n  background: #3b82f6;\n  color: #fff;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 600;\n  transition: all 0.2s ease;\n}\n.action-btn:hover { background: #2563eb; transform: translateY(-1px); }\n.output { margin-top: 16px; font-weight: 500; color: #22c55e; }'
-            solution_js = "const btn = document.getElementById('action-btn');\nconst out = document.getElementById('output-box');\n\nbtn.addEventListener('click', () => {\n  out.textContent = 'Completed!';\n});"
+            solution_js = "const btn = document.getElementById('action-btn');\nconst out = document.getElementById('output-box');\n\nif (btn) {\n  btn.addEventListener('click', () => {\n    out.textContent = 'Completed!';\n  });\n}"
 
             tests = [
                 {
@@ -481,7 +621,7 @@ class LLMService:
                     "test_id": "test-action-click",
                     "description": "Clicking button updates output text to 'Completed!'",
                     "test_type": "javascript",
-                    "assertion_code": "(() => { const btn = document.getElementById('action-btn'); const out = document.getElementById('output-box'); btn.click(); return out.textContent.trim() === 'Completed!'; })()",
+                    "assertion_code": "(() => { const btn = document.getElementById('action-btn'); const out = document.getElementById('output-box'); if (!btn || !out) return false; btn.click(); return out.textContent.trim() === 'Completed!'; })()",
                 },
                 {
                     "test_id": "test-styling-applied",

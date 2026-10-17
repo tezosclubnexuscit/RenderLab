@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="DevForge AI Practice Suite API",
+    title="RenderLab AI Practice Suite API",
     description="Backend API for AI-powered frontend coding practice with Local LLMs and Cloud API Keys",
     version="1.0.0",
     lifespan=lifespan,
@@ -45,4 +45,4 @@ app.include_router(progress.router)
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "app": "DevForge AI Practice Suite API"}
+    return {"status": "ok", "app": "RenderLab AI Practice Suite API"}

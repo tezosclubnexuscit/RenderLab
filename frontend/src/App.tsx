@@ -5,6 +5,8 @@ import { ChallengeBrowser } from './components/ChallengeBrowser';
 import { ProgressDashboard } from './components/ProgressDashboard';
 import { LLMSettingsModal } from './components/LLMSettingsModal';
 import { ChallengeGeneratorModal } from './components/ChallengeGeneratorModal';
+import { LandingPage } from './components/LandingPage';
+import { NavTab } from './components/Header';
 import {
   Challenge,
   ChallengeListItem,
@@ -13,9 +15,11 @@ import {
 } from './types';
 import { api } from './services/api';
 import { Loader2 } from 'lucide-react';
+import { useTheme } from './context/ThemeContext';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'workspace' | 'browser' | 'progress'>('workspace');
+  const { theme } = useTheme();
+  const [activeTab, setActiveTab] = useState<NavTab>('landing');
   const [challenges, setChallenges] = useState<ChallengeListItem[]>([]);
   const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null);
   const [llmConfig, setLlmConfig] = useState<LLMConfig | null>(null);
@@ -112,7 +116,13 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+        theme === 'light'
+          ? 'bg-[#f8fafc] text-slate-900 selection:bg-emerald-500/30 selection:text-emerald-700'
+          : 'bg-[#0b0f17] text-slate-100 selection:bg-emerald-500/30 selection:text-emerald-300'
+      }`}
+    >
       {/* Top Header */}
       <Header
         activeTab={activeTab}
@@ -128,10 +138,20 @@ export const App: React.FC = () => {
         {initialLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-            <p className="text-xs text-slate-400">Loading DevForge Practice Suite...</p>
+            <p className="text-xs text-slate-400">Loading RenderLab Practice Suite...</p>
           </div>
         ) : (
           <>
+            {activeTab === 'landing' && (
+              <LandingPage
+                onStartPracticing={() => setActiveTab('workspace')}
+                onExploreChallenges={() => setActiveTab('browser')}
+                onOpenGenerator={() => setIsGeneratorOpen(true)}
+                onSelectChallenge={handleSelectChallenge}
+                challenges={challenges}
+              />
+            )}
+
             {activeTab === 'workspace' && currentChallenge && (
               <Workspace
                 challenge={currentChallenge}

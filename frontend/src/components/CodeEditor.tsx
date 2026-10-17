@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { RotateCcw, Copy, Check, FileCode2, Play } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export type EditorTab = 'html' | 'css' | 'javascript';
 
@@ -21,6 +22,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onResetStarter,
   onRunPreview,
 }) => {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<EditorTab>('html');
   const [copied, setCopied] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -156,7 +158,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           height="100%"
           language={getLanguage(activeTab)}
           value={getCurrentCode()}
-          theme="vs-dark"
+          theme={theme === 'light' ? 'vs' : 'vs-dark'}
           onChange={(val) => onCodeChange(activeTab, val || '')}
           options={{
             fontSize: 13,

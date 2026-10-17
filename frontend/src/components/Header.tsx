@@ -9,12 +9,18 @@ import {
   CheckCircle2,
   Cpu,
   Key,
+  Sun,
+  Moon,
+  Home,
 } from 'lucide-react';
 import { LLMConfig, UserProgress } from '../types';
+import { useTheme } from '../context/ThemeContext';
+
+export type NavTab = 'landing' | 'workspace' | 'browser' | 'progress';
 
 interface HeaderProps {
-  activeTab: 'workspace' | 'browser' | 'progress';
-  setActiveTab: (tab: 'workspace' | 'browser' | 'progress') => void;
+  activeTab: NavTab;
+  setActiveTab: (tab: NavTab) => void;
   onOpenSettings: () => void;
   onOpenGenerator: () => void;
   llmConfig: LLMConfig | null;
@@ -29,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   llmConfig,
   progress,
 }) => {
+  const { theme, toggleTheme } = useTheme();
   const isCloudProvider =
     llmConfig?.provider && ['gemini', 'openai', 'groq', 'anthropic'].includes(llmConfig.provider);
 
@@ -37,16 +44,23 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Brand & Main Navigation */}
       <div className="flex items-center space-x-6">
         <div
-          onClick={() => setActiveTab('workspace')}
+          onClick={() => setActiveTab('landing')}
           className="flex items-center space-x-2.5 cursor-pointer group"
+          title="Return to Home"
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
             <Code2 className="w-5 h-5 text-slate-950 font-bold" />
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="font-extrabold text-base tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-                DevForge
+              <span
+                className={`font-extrabold text-base tracking-tight bg-clip-text text-transparent ${
+                  theme === 'light'
+                    ? 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600'
+                    : 'bg-gradient-to-r from-white via-slate-100 to-slate-400'
+                }`}
+              >
+                RenderLab
               </span>
               <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 AI Suite
@@ -58,6 +72,17 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Navigation Tabs */}
         <nav className="flex items-center space-x-1">
           <button
+            onClick={() => setActiveTab('landing')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center space-x-1.5 ${
+              activeTab === 'landing'
+                ? 'bg-slate-800 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Overview</span>
+          </button>
+          <button
             onClick={() => setActiveTab('workspace')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center space-x-1.5 ${
               activeTab === 'workspace'
@@ -65,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
-            <Code2 className="w-3.5 h-3.5 text-emerald-400" />
+            <Code2 className="w-3.5 h-3.5 text-teal-400" />
             <span>Practice Workspace</span>
           </button>
           <button
@@ -142,6 +167,24 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           />
           <Settings className="w-3.5 h-3.5 text-slate-400 hover:text-slate-200 ml-0.5" />
+        </button>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          className={`flex items-center justify-center p-2 rounded-md border text-xs transition-all ${
+            theme === 'light'
+              ? 'bg-slate-200/80 hover:bg-slate-300/80 border-slate-300 text-amber-600 shadow-sm'
+              : 'bg-slate-850 hover:bg-slate-800 border-slate-750 text-amber-400 hover:text-amber-300'
+          }`}
+          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          aria-label="Toggle theme"
+        >
+          {theme === 'light' ? (
+            <Moon className="w-4 h-4 text-indigo-600 hover:rotate-12 transition-transform" />
+          ) : (
+            <Sun className="w-4 h-4 text-amber-400 hover:rotate-45 transition-transform" />
+          )}
         </button>
       </div>
     </header>

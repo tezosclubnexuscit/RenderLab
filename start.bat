@@ -3,7 +3,7 @@ cd /d "%~dp0"
 setlocal enabledelayedexpansion
 
 echo ===================================================
-echo   Starting DevForge AI-Powered Practice Suite
+echo   Starting RenderLab AI-Powered Practice Suite
 echo ===================================================
 echo.
 
@@ -13,7 +13,7 @@ if %errorlevel% equ 0 (
     echo [INFO] Backend is already running on http://127.0.0.1:8000
 ) else (
     echo [INFO] Starting FastAPI Backend on port 8000 with auto-reload...
-    start "DevForge Backend" cmd /k "backend\venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload"
+    start "RenderLab Backend" cmd /k "backend\venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload"
 )
 
 :: Check if frontend is already running on 5173 or 5174
@@ -28,12 +28,12 @@ if %F1% equ 0 (
     echo [INFO] Frontend is already running on http://localhost:5174
 ) else (
     echo [INFO] Starting Vite Frontend...
-    start "DevForge Frontend" cmd /k "cd frontend && npm run dev"
+    start "RenderLab Frontend" cmd /k "cd frontend && npm run dev"
 )
 
 echo.
 echo ===================================================
-echo   DevForge is Ready!
+echo   RenderLab is Ready!
 echo   - Backend:  http://127.0.0.1:8000/docs
 echo   - Frontend: http://localhost:5174 (or 5173)
 echo ===================================================

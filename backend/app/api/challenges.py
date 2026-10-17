@@ -11,7 +11,11 @@ from ..schemas.challenge import (
     StarterCode,
 )
 from ..services.challenge_validator import ChallengeValidator
-from ..services.llm_service import LLMService
+from ..services.llm_service import (
+    LLMService,
+    find_matching_curriculum_challenge,
+    adapt_curriculum_challenge,
+)
 
 router = APIRouter(prefix="/api/challenges", tags=["challenges"])
 
@@ -179,6 +183,7 @@ async def generate_challenge(request: GenerateChallengeRequest, db: Session = De
             mode=request.mode,
             learning_objective=request.learning_objective,
             custom_prompt=request.custom_prompt,
+            category=request.category,
         )
     except Exception as e:
         raise HTTPException(
@@ -189,10 +194,20 @@ async def generate_challenge(request: GenerateChallengeRequest, db: Session = De
     # Validate generated challenge
     is_valid, errors, validated_data = ChallengeValidator.validate_challenge_payload(raw_challenge)
     if not is_valid:
-        raise HTTPException(
-            status_code=422,
-            detail={"message": "LLM produced challenge that failed validation", "errors": errors, "raw": raw_challenge},
-        )
+        print(f"[API] Initial validation failed ({errors}), generating resilient curriculum fallback...")
+        base = find_matching_curriculum_challenge(request.topic, request.category)
+        if base:
+            fallback_raw = adapt_curriculum_challenge(base, request.topic, request.difficulty, request.mode, request.learning_objective)
+        else:
+            fallback_raw = LLMService.generate_fallback_challenge(
+                request.topic, request.difficulty, request.mode, request.learning_objective, request.custom_prompt
+            )
+        is_valid, errors, validated_data = ChallengeValidator.validate_challenge_payload(fallback_raw)
+        if not is_valid:
+            raise HTTPException(
+                status_code=422,
+                detail={"message": "LLM produced challenge that failed validation", "errors": errors, "raw": raw_challenge},
+            )
 
     # Make ID unique if needed
     challenge_id = validated_data["id"]

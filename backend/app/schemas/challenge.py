@@ -12,7 +12,7 @@ class StarterCode(BaseModel):
 class TestCaseSchema(BaseModel):
     test_id: str
     description: str
-    test_type: Literal["dom", "css", "javascript", "event", "custom"] = "dom"
+    test_type: str = "dom"
     selector: Optional[str] = None
     property_name: Optional[str] = None
     expected_value: Optional[str] = None
@@ -24,9 +24,9 @@ class ChallengeBase(BaseModel):
     id: str
     title: str
     description: str
-    difficulty: Literal["easy", "medium", "hard"] = "easy"
+    difficulty: str = "easy"
     topics: List[str] = []
-    mode: Literal["fill_blanks", "fix_broken", "build_component", "recreate_page"] = "fill_blanks"
+    mode: str = "fill_blanks"
     starter_code: StarterCode
     requirements: List[str] = []
     hints: List[str] = []
@@ -86,6 +86,7 @@ class SubmissionResponse(BaseModel):
 
 class GenerateChallengeRequest(BaseModel):
     topic: str = "css flexbox"
+    category: Optional[Literal["html", "css", "javascript"]] = None
     difficulty: Literal["easy", "medium", "hard"] = "easy"
     mode: Literal["fill_blanks", "fix_broken", "build_component", "recreate_page"] = "fill_blanks"
     learning_objective: Optional[str] = None

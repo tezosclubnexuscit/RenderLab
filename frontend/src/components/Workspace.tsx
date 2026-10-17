@@ -29,6 +29,7 @@ import { LivePreview, LivePreviewHandle } from './LivePreview';
 import { TestResults } from './TestResults';
 import { AIHintModal } from './AIHintModal';
 import { ExpectedOutputPreview } from './ExpectedOutputPreview';
+import { getChallengeCategory } from './ChallengeBrowser';
 import { api } from '../services/api';
 
 interface WorkspaceProps {
@@ -167,12 +168,29 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         {/* Challenge Header */}
         <div className="p-4 border-b border-slate-800 space-y-2.5">
           <div className="flex items-center space-x-2">
+            {/* Category badge */}
+            <span
+              className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border flex items-center space-x-1 ${
+                getChallengeCategory(challenge) === 'html'
+                  ? 'bg-orange-500/15 text-orange-500 border-orange-500/30'
+                  : getChallengeCategory(challenge) === 'css'
+                  ? 'bg-sky-500/15 text-sky-500 border-sky-500/30'
+                  : 'bg-amber-500/15 text-amber-500 border-amber-500/30'
+              }`}
+            >
+              <span>{getChallengeCategory(challenge).toUpperCase()}</span>
+            </span>
+
             <span
               className={`text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border ${
                 difficultyColors[challenge.difficulty]
               }`}
             >
-              {challenge.difficulty}
+              {challenge.difficulty === 'easy'
+                ? 'Beginner'
+                : challenge.difficulty === 'medium'
+                ? 'Intermediate'
+                : 'Advanced'}
             </span>
             <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 capitalize">
               {challenge.mode.replace('_', ' ')}
@@ -200,10 +218,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="h-9 bg-slate-900/80 border-b border-slate-800 px-3 flex items-center space-x-1">
+        <div className="h-9 bg-slate-900/80 border-b border-slate-800 px-3 flex items-center space-x-1 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setLeftTab('specs')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center space-x-1 ${
+            className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-colors flex items-center space-x-1 ${
               leftTab === 'specs'
                 ? 'bg-slate-800 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -214,7 +232,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </button>
           <button
             onClick={() => setLeftTab('expected')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center space-x-1 ${
+            className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-colors flex items-center space-x-1 ${
               leftTab === 'expected'
                 ? 'bg-slate-800 text-emerald-300 shadow-sm border border-emerald-500/30'
                 : 'text-slate-400 hover:text-emerald-400'
@@ -225,7 +243,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </button>
           <button
             onClick={() => setLeftTab('requirements')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center space-x-1 ${
+            className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-colors flex items-center space-x-1 ${
               leftTab === 'requirements'
                 ? 'bg-slate-800 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -236,7 +254,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </button>
           <button
             onClick={() => setLeftTab('history')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center space-x-1 ${
+            className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-colors flex items-center space-x-1 ${
               leftTab === 'history'
                 ? 'bg-slate-800 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -430,7 +448,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <div className="flex items-center space-x-1">
             <button
               onClick={() => setRightTab('preview')}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center space-x-1.5 ${
+              className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-colors flex items-center space-x-1.5 ${
                 rightTab === 'preview'
                   ? 'bg-slate-800 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
@@ -444,7 +462,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             </button>
             <button
               onClick={() => setRightTab('tests')}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center space-x-1.5 ${
+              className={`px-3 py-1 rounded text-xs font-medium whitespace-nowrap shrink-0 transition-colors flex items-center space-x-1.5 ${
                 rightTab === 'tests'
                   ? 'bg-slate-800 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'

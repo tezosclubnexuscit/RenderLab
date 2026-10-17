@@ -2,18 +2,36 @@
 
 :root {
   color-scheme: dark;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
   background-color: #0b0f17;
   color: #f1f5f9;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom sleek scrollbar */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Custom dark scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -30,6 +48,14 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Glassmorphism utility */
@@ -57,4 +83,288 @@ body {
 
 .glow-active {
   animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+/* ==========================================================================
+   LIGHT MODE DESIGN SYSTEM
+   Activated when html.light or .light is present on the root
+   ========================================================================== */
+
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Scrollbars in light mode */
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Background translations */
+.light .min-h-screen,
+.light [class*="bg-[#0b0f17]"] {
+  background-color: #f8fafc !important;
+}
+
+.light header,
+.light [class*="bg-[#0d131f]"] {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light [class*="bg-[#111726]"],
+.light .bg-slate-900,
+.light .bg-slate-900\/90,
+.light .bg-slate-900\/80,
+.light .bg-slate-900\/70,
+.light .bg-slate-900\/60,
+.light .bg-slate-900\/50,
+.light .bg-slate-900\/40,
+.light .bg-slate-900\/30 {
+  background-color: #ffffff !important;
+}
+
+.light .bg-slate-950,
+.light .bg-slate-850,
+.light [class*="bg-[#0f172a]"] {
+  background-color: #f1f5f9 !important;
+}
+
+/* Hover surfaces */
+.light .hover\:bg-slate-800:hover,
+.light .hover\:bg-slate-800\/50:hover,
+.light .hover\:bg-slate-900:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Borders in light mode */
+.light [class*="border-slate-800"],
+.light [class*="border-slate-750"],
+.light [class*="border-slate-700"],
+.light [class*="divide-slate-800"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Dark gradient container conversions in light mode */
+.light [class*="from-slate-900"]:not(button),
+.light [class*="via-slate-850"]:not(button),
+.light [class*="to-slate-900"]:not(button),
+.light [class*="from-slate-850"]:not(button) {
+  background-image: none !important;
+  background-color: #ffffff !important;
+}
+
+/* Typography & Contrast in light mode */
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6 {
+  color: #0f172a !important;
+}
+
+.light h1.text-white,
+.light h2.text-white,
+.light h3.text-white,
+.light h4.text-white,
+.light h5.text-white,
+.light h6.text-white,
+.light p.text-white,
+.light span.text-white:not(button *):not([class*="bg-"]),
+.light div.text-white:not(button *):not([class*="bg-"]),
+.light .text-slate-100:not(button *):not([class*="bg-"]) {
+  color: #0f172a !important;
+}
+
+/* Action and colored buttons must always preserve crisp white text */
+.light button[class*="from-violet"],
+.light button[class*="from-indigo"],
+.light button[class*="to-indigo"],
+.light button[class*="bg-violet"],
+.light button[class*="bg-indigo"],
+.light button[class*="from-emerald"],
+.light button[class*="bg-emerald-500"],
+.light button[class*="bg-emerald-600"],
+.light button[class*="bg-blue"],
+.light button[class*="from-blue"],
+.light button[class*="bg-amber-600"],
+.light button.bg-slate-800,
+.light [class*="!text-white"],
+.light [class*="!text-white"] * {
+  color: #ffffff !important;
+}
+
+.light button[class*="from-violet"] *,
+.light button[class*="from-indigo"] *,
+.light button[class*="to-indigo"] *,
+.light button[class*="bg-violet"] *,
+.light button[class*="bg-indigo"] *,
+.light button[class*="from-emerald"] *,
+.light button[class*="bg-emerald-500"] *,
+.light button[class*="bg-emerald-600"] *,
+.light button[class*="bg-blue"] *,
+.light button[class*="from-blue"] *,
+.light button[class*="bg-amber-600"] *,
+.light button.bg-slate-800 * {
+  color: #ffffff !important;
+}
+
+.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+.light .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Badge pills and chips in light mode */
+.light span.bg-slate-800,
+.light span.bg-slate-850,
+.light span.bg-slate-900,
+.light span.bg-slate-950,
+.light div.bg-slate-800:not(button *) {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light span.bg-slate-800 svg,
+.light span.bg-slate-850 svg,
+.light span.bg-slate-900 svg,
+.light span.bg-slate-950 svg {
+  color: #64748b !important;
+}
+
+/* Active buttons and tabs in light mode */
+.light button.bg-slate-800,
+.light .bg-slate-800.text-white,
+.light nav button.bg-slate-800 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25) !important;
+}
+
+.light button.bg-slate-800 svg,
+.light nav button.bg-slate-800 svg {
+  color: #ffffff !important;
+}
+
+/* Expected output active tab badge */
+.light button.text-emerald-300.bg-slate-800 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+.light button.text-emerald-300.bg-slate-800 svg {
+  color: #ffffff !important;
+}
+
+/* Accent text colors in light mode */
+.light .text-emerald-400,
+.light .text-emerald-500 {
+  color: #059669 !important;
+}
+
+.light .text-cyan-400 {
+  color: #0284c7 !important;
+}
+
+.light .text-indigo-400 {
+  color: #4f46e5 !important;
+}
+
+.light .text-amber-400,
+.light .text-amber-300 {
+  color: #d97706 !important;
+}
+
+/* Badge pills in light mode */
+.light .bg-emerald-500\/10,
+.light .bg-emerald-500\/15,
+.light .bg-emerald-500\/20 {
+  background-color: #ecfdf5 !important;
+}
+
+.light .border-emerald-500\/20,
+.light .border-emerald-500\/30 {
+  border-color: #a7f3d0 !important;
+}
+
+.light .bg-indigo-500\/10,
+.light .bg-indigo-600\/15,
+.light .bg-indigo-600\/20 {
+  background-color: #eef2ff !important;
+}
+
+.light .border-indigo-500\/20 {
+  border-color: #c7d2fe !important;
+}
+
+/* Form Controls in light mode */
+.light input,
+.light select,
+.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light input:focus,
+.light select:focus,
+.light textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb !important;
+  outline: none !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Modal styling in light mode */
+.light .fixed.inset-0.bg-black\/70,
+.light .fixed.inset-0.bg-black\/60 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+.light .fixed [class*="bg-[#111726]"],
+.light .fixed .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.light .fixed [class*="bg-slate-900/50"],
+.light .fixed [class*="bg-slate-900/80"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Selection */
+.light ::selection {
+  background-color: #bfdbfe;
+  color: #1e3a8a;
 }
