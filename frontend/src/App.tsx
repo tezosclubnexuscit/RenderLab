@@ -21,7 +21,8 @@ export const App: React.FC = () => {
   const [llmConfig, setLlmConfig] = useState<LLMConfig | null>(null);
   const [progress, setProgress] = useState<UserProgress | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [challengeLoading, setChallengeLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
 
@@ -31,7 +32,7 @@ export const App: React.FC = () => {
   }, []);
 
   const loadInitialData = async () => {
-    setLoading(true);
+    setInitialLoading(true);
     try {
       const [chList, cfg, prog] = await Promise.all([
         api.getChallenges(),
@@ -51,12 +52,12 @@ export const App: React.FC = () => {
     } catch (err) {
       console.error('Failed to load initial data:', err);
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   };
 
   const handleSelectChallenge = async (id: string) => {
-    setLoading(true);
+    setChallengeLoading(true);
     try {
       const ch = await api.getChallenge(id);
       setCurrentChallenge(ch);
@@ -64,7 +65,7 @@ export const App: React.FC = () => {
     } catch (err) {
       alert('Could not load challenge');
     } finally {
-      setLoading(false);
+      setChallengeLoading(false);
     }
   };
 
@@ -124,7 +125,7 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-h-0">
-        {loading && !currentChallenge ? (
+        {initialLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
             <p className="text-xs text-slate-400">Loading DevForge Practice Suite...</p>
@@ -136,6 +137,7 @@ export const App: React.FC = () => {
                 challenge={currentChallenge}
                 onChallengeSolved={handleChallengeSolved}
                 llmConfig={llmConfig}
+                loading={challengeLoading}
               />
             )}
 

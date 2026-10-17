@@ -350,6 +350,7 @@ class LLMService:
         ]
 
         try:
+            clean_json_str = ""   # initialize before use so except clause can reference it safely
             raw_output = await cls.chat_completion(messages, response_json=True, max_tokens=3000)
 
             # Parse JSON safely
@@ -695,40 +696,38 @@ class LLMService:
     @classmethod
     async def pull_model_stream(cls, model_name: str, base_url: Optional[str] = None):
         url = (base_url or "http://localhost:11434").rstrip("/")
-        # Stream pull from Ollama
-        client = httpx.AsyncClient(timeout=httpx.Timeout(1800.0, connect=10.0))
-        try:
-            async with client.stream(
-                "POST",
-                f"{url}/api/pull",
-                json={"name": model_name, "stream": True},
-            ) as response:
-                if response.status_code != 200:
-                    yield f"data: {json.dumps({'status': 'error', 'message': f'HTTP {response.status_code}'})}\n\n"
-                    return
+        # Stream pull from Ollama — use async with to guarantee cleanup regardless of generator lifecycle
+        async with httpx.AsyncClient(timeout=httpx.Timeout(1800.0, connect=10.0)) as client:
+            try:
+                async with client.stream(
+                    "POST",
+                    f"{url}/api/pull",
+                    json={"name": model_name, "stream": True},
+                ) as response:
+                    if response.status_code != 200:
+                        yield f"data: {json.dumps({'status': 'error', 'message': f'HTTP {response.status_code}'})}\n\n"
+                        return
 
-                async for line in response.aiter_lines():
-                    if not line:
-                        continue
-                    try:
-                        chunk = json.loads(line)
-                        status = chunk.get("status", "")
-                        completed = chunk.get("completed", 0)
-                        total = chunk.get("total", 0)
-                        percent = round((completed / total * 100), 1) if total > 0 else None
-                        
-                        payload = {
-                            "status": status,
-                            "completed": completed,
-                            "total": total,
-                            "percent": percent,
-                            "completed_mb": round(completed / (1024 * 1024), 1) if completed else 0,
-                            "total_mb": round(total / (1024 * 1024), 1) if total else 0,
-                        }
-                        yield f"data: {json.dumps(payload)}\n\n"
-                    except Exception:
-                        pass
-        except Exception as err:
-            yield f"data: {json.dumps({'status': 'error', 'message': str(err)})}\n\n"
-        finally:
-            await client.aclose()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                            status = chunk.get("status", "")
+                            completed = chunk.get("completed", 0)
+                            total = chunk.get("total", 0)
+                            percent = round((completed / total * 100), 1) if total > 0 else None
+
+                            payload = {
+                                "status": status,
+                                "completed": completed,
+                                "total": total,
+                                "percent": percent,
+                                "completed_mb": round(completed / (1024 * 1024), 1) if completed else 0,
+                                "total_mb": round(total / (1024 * 1024), 1) if total else 0,
+                            }
+                            yield f"data: {json.dumps(payload)}\n\n"
+                        except Exception:
+                            pass
+            except Exception as err:
+                yield f"data: {json.dumps({'status': 'error', 'message': str(err)})}\n\n"

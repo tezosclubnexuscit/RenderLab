@@ -35,12 +35,15 @@ interface WorkspaceProps {
   challenge: Challenge;
   onChallengeSolved: () => void;
   llmConfig: LLMConfig | null;
+  /** When true, shows a subtle loading overlay while the new challenge is fetching */
+  loading?: boolean;
 }
 
 export const Workspace: React.FC<WorkspaceProps> = ({
   challenge,
   onChallengeSolved,
   llmConfig,
+  loading = false,
 }) => {
   // Code states
   const [html, setHtml] = useState(challenge.starter_code.html || '');
@@ -146,7 +149,19 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] flex flex-col md:flex-row overflow-hidden bg-[#0b0f17]">
+    <div className="h-[calc(100vh-3.5rem)] flex flex-col md:flex-row overflow-hidden bg-[#0b0f17] relative">
+      {/* Subtle overlay when switching challenges — does NOT blank the whole app */}
+      {loading && (
+        <div className="absolute inset-0 z-40 bg-black/40 backdrop-blur-[1px] flex items-center justify-center pointer-events-none">
+          <div className="flex items-center space-x-2 text-slate-300 text-xs bg-slate-900/80 px-4 py-2 rounded-lg border border-slate-700 shadow-lg">
+            <svg className="w-4 h-4 animate-spin text-emerald-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span>Loading challenge...</span>
+          </div>
+        </div>
+      )}
       {/* ================= LEFT PANEL (Challenge Description & Specs) ================= */}
       <div className="w-full md:w-[32%] lg:w-[28%] border-r border-slate-800 flex flex-col bg-[#111726] h-full shrink-0">
         {/* Challenge Header */}
@@ -255,6 +270,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                     ? 'Inspect the comments marked with "TODO" in the editor tabs and complete the missing styling or logic.'
                     : challenge.mode === 'fix_broken'
                     ? 'The starter code contains one or more subtle bugs. Diagnose why the behavior fails and correct it.'
+                    : challenge.mode === 'recreate_page'
+                    ? 'Study the Expected Output tab on the left panel. Recreate that exact UI design in the editor to match it pixel-for-pixel.'
                     : 'Construct the component according to the requirements and run checks to verify accuracy.'}
                 </p>
               </div>

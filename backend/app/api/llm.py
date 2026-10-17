@@ -42,7 +42,7 @@ def get_llm_configuration():
     )
 
 
-@router.post("/config/llm", response_model=LLMConfigSchema)
+@router.put("/config/llm", response_model=LLMConfigSchema)
 def update_llm_configuration(payload: LLMConfigSchema):
     updated = update_current_llm_config(payload.model_dump())
     return LLMConfigSchema(**updated)
