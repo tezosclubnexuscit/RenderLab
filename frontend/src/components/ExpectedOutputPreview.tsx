@@ -111,7 +111,7 @@ export const ExpectedOutputPreview: React.FC<ExpectedOutputPreviewProps> = ({
               srcDoc={docContent}
               title={`Expected output for ${title}`}
               className="w-full h-full border-0 bg-transparent"
-              sandbox="allow-scripts allow-same-origin allow-modals"
+              sandbox="allow-scripts allow-modals"
             />
           ) : (
             <div className="h-full flex items-center justify-center text-slate-500 text-xs italic p-4 text-center">

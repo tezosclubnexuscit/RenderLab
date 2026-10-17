@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import (
     Column,
     String,
@@ -49,7 +49,7 @@ class ChallengeModel(Base):
     hints_json = Column(Text, nullable=False, default="[]")
     estimated_minutes = Column(Integer, default=15)
     is_approved = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     test_cases = relationship("TestCaseModel", back_populates="challenge", cascade="all, delete-orphan")
     attempts = relationship("AttemptModel", back_populates="challenge", cascade="all, delete-orphan")
@@ -117,7 +117,7 @@ class AttemptModel(Base):
     passed_count = Column(Integer, default=0)
     total_count = Column(Integer, default=0)
     execution_time_ms = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     challenge = relationship("ChallengeModel", back_populates="attempts")
     results = relationship("AttemptResultModel", back_populates="attempt", cascade="all, delete-orphan")
@@ -145,7 +145,8 @@ class LLMSettingModel(Base):
     model = Column(String(100), default="deepseek-coder:6.7b")
     api_key = Column(Text, default="")
     temperature = Column(Float, default=0.3)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc),
+                        onupdate=lambda: datetime.now(timezone.utc))
 
 
 def init_db():

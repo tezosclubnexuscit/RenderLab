@@ -39,44 +39,18 @@ def submit_solution(
     if payload.results_override and len(payload.results_override) > 0:
         evaluated_results = payload.results_override
     else:
-        # Evaluate each test case using static AST / keyword / structural heuristics
-        combined_css = payload.code_css.lower()
-        combined_html = payload.code_html.lower()
-        combined_js = payload.code_js.lower()
-
+        # Sandbox was unavailable — mark all tests as unevaluated rather than
+        # using unreliable heuristics that produce false positives.
         for t in ch.test_cases:
-            passed = True
-            msg = None
-
-            # Basic checks based on test metadata
-            if t.selector:
-                clean_sel = t.selector.replace(".", "").replace("#", "").lower()
-                if clean_sel not in combined_html and clean_sel not in combined_css:
-                    passed = False
-                    msg = f"Selector '{t.selector}' was not found in your HTML or CSS"
-
-            if passed and t.property_name:
-                clean_prop = t.property_name.lower()
-                if clean_prop not in combined_css:
-                    passed = False
-                    msg = f"Expected CSS property '{t.property_name}' was not detected in styles"
-
-            if passed and t.expected_value:
-                clean_val = t.expected_value.lower()
-                if clean_val not in combined_css and clean_val not in combined_html:
-                    passed = False
-                    msg = f"Expected value '{t.expected_value}' not matched in code"
-
-            # If no failures detected by heuristic:
-            if passed:
-                msg = "Test assertion verified"
-
             evaluated_results.append(
                 SubmissionResultItem(
                     test_id=t.test_id,
                     description=t.description,
-                    passed=passed,
-                    message=msg,
+                    passed=False,
+                    message=(
+                        "Test could not be evaluated: browser sandbox unavailable. "
+                        "Please refresh and resubmit."
+                    ),
                 )
             )
 

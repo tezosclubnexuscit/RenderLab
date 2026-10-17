@@ -35,8 +35,11 @@ export const AIHintModal: React.FC<AIHintModalProps> = ({
       // Load initial pedagogical hint when modal opens
       loadHint();
     } else {
-      // Clear state when closed
+      // Clear all state when closed so no stale history shows on next open
       setUserQuestion('');
+      setHistory([]);
+      setHint(null);
+      setError(null);
     }
   }, [isOpen, challenge.id]);
 

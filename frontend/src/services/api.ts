@@ -100,7 +100,7 @@ export const api = {
 
   async updateLLMConfig(config: LLMConfig): Promise<LLMConfig> {
     const res = await fetch(`${API_BASE}/config/llm`, {
-      method: 'POST',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config),
     });
