@@ -74,6 +74,7 @@ export const api = {
     mode: string;
     learning_objective?: string;
     custom_prompt?: string;
+    blueprint_id?: string;
   }): Promise<Challenge> {
     const res = await fetch(`${API_BASE}/challenges/generate`, {
       method: 'POST',
@@ -209,5 +210,17 @@ export const api = {
         }
       }
     }
+  },
+
+  async startOllama(): Promise<{ status: string; message: string }> {
+    return api.startOllamaDaemon();
+  },
+
+  async pullLocalModel(
+    model: string,
+    baseUrl: string,
+    onProgress: (progress: any) => void
+  ): Promise<void> {
+    return api.pullModel(model, baseUrl, onProgress);
   },
 };

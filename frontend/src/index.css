@@ -27,8 +27,32 @@ button, input, select, textarea {
   font-family: inherit;
 }
 
-button {
-  cursor: pointer;
+/* ==========================================================================
+   WINDOWS 2000 RETRO PIXEL MOUSE CURSORS
+   ========================================================================== */
+html, body {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='19' viewBox='0 0 12 19' shape-rendering='crispEdges'%3E<rect x='0' y='0' width='1' height='1' fill='%23000000'/><rect x='0' y='1' width='2' height='1' fill='%23000000'/><rect x='0' y='2' width='1' height='1' fill='%23000000'/><rect x='1' y='2' width='1' height='1' fill='%23ffffff'/><rect x='2' y='2' width='1' height='1' fill='%23000000'/><rect x='0' y='3' width='1' height='1' fill='%23000000'/><rect x='1' y='3' width='2' height='1' fill='%23ffffff'/><rect x='3' y='3' width='1' height='1' fill='%23000000'/><rect x='0' y='4' width='1' height='1' fill='%23000000'/><rect x='1' y='4' width='3' height='1' fill='%23ffffff'/><rect x='4' y='4' width='1' height='1' fill='%23000000'/><rect x='0' y='5' width='1' height='1' fill='%23000000'/><rect x='1' y='5' width='4' height='1' fill='%23ffffff'/><rect x='5' y='5' width='1' height='1' fill='%23000000'/><rect x='0' y='6' width='1' height='1' fill='%23000000'/><rect x='1' y='6' width='5' height='1' fill='%23ffffff'/><rect x='6' y='6' width='1' height='1' fill='%23000000'/><rect x='0' y='7' width='1' height='1' fill='%23000000'/><rect x='1' y='7' width='6' height='1' fill='%23ffffff'/><rect x='7' y='7' width='1' height='1' fill='%23000000'/><rect x='0' y='8' width='1' height='1' fill='%23000000'/><rect x='1' y='8' width='7' height='1' fill='%23ffffff'/><rect x='8' y='8' width='1' height='1' fill='%23000000'/><rect x='0' y='9' width='1' height='1' fill='%23000000'/><rect x='1' y='9' width='8' height='1' fill='%23ffffff'/><rect x='9' y='9' width='1' height='1' fill='%23000000'/><rect x='0' y='10' width='1' height='1' fill='%23000000'/><rect x='1' y='10' width='9' height='1' fill='%23ffffff'/><rect x='10' y='10' width='1' height='1' fill='%23000000'/><rect x='0' y='11' width='1' height='1' fill='%23000000'/><rect x='1' y='11' width='6' height='1' fill='%23ffffff'/><rect x='7' y='11' width='5' height='1' fill='%23000000'/><rect x='0' y='12' width='1' height='1' fill='%23000000'/><rect x='1' y='12' width='2' height='1' fill='%23ffffff'/><rect x='3' y='12' width='1' height='1' fill='%23000000'/><rect x='4' y='12' width='2' height='1' fill='%23ffffff'/><rect x='6' y='12' width='1' height='1' fill='%23000000'/><rect x='0' y='13' width='1' height='1' fill='%23000000'/><rect x='1' y='13' width='1' height='1' fill='%23ffffff'/><rect x='2' y='13' width='1' height='1' fill='%23000000'/><rect x='4' y='13' width='1' height='1' fill='%23000000'/><rect x='5' y='13' width='2' height='1' fill='%23ffffff'/><rect x='7' y='13' width='1' height='1' fill='%23000000'/><rect x='0' y='14' width='2' height='1' fill='%23000000'/><rect x='4' y='14' width='1' height='1' fill='%23000000'/><rect x='5' y='14' width='2' height='1' fill='%23ffffff'/><rect x='7' y='14' width='1' height='1' fill='%23000000'/><rect x='0' y='15' width='1' height='1' fill='%23000000'/><rect x='5' y='15' width='1' height='1' fill='%23000000'/><rect x='6' y='15' width='2' height='1' fill='%23ffffff'/><rect x='8' y='15' width='1' height='1' fill='%23000000'/><rect x='5' y='16' width='1' height='1' fill='%23000000'/><rect x='6' y='16' width='2' height='1' fill='%23ffffff'/><rect x='8' y='16' width='1' height='1' fill='%23000000'/><rect x='6' y='17' width='1' height='1' fill='%23000000'/><rect x='7' y='17' width='2' height='1' fill='%23ffffff'/><rect x='9' y='17' width='1' height='1' fill='%23000000'/><rect x='7' y='18' width='2' height='1' fill='%23000000'/>%3C/svg%3E") 0 0, auto;
+}
+
+button,
+a,
+select,
+input[type="submit"],
+input[type="button"],
+.cursor-pointer,
+.mario-btn,
+.mario-question-block,
+[role="button"] {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='23' viewBox='0 0 18 23' shape-rendering='crispEdges'%3E<rect x='6' y='0' width='2' height='1' fill='%23000000'/><rect x='5' y='1' width='1' height='1' fill='%23000000'/><rect x='6' y='1' width='2' height='1' fill='%23ffffff'/><rect x='8' y='1' width='1' height='1' fill='%23000000'/><rect x='5' y='2' width='1' height='1' fill='%23000000'/><rect x='6' y='2' width='2' height='1' fill='%23ffffff'/><rect x='8' y='2' width='1' height='1' fill='%23000000'/><rect x='5' y='3' width='1' height='1' fill='%23000000'/><rect x='6' y='3' width='2' height='1' fill='%23ffffff'/><rect x='8' y='3' width='1' height='1' fill='%23000000'/><rect x='5' y='4' width='1' height='1' fill='%23000000'/><rect x='6' y='4' width='2' height='1' fill='%23ffffff'/><rect x='8' y='4' width='1' height='1' fill='%23000000'/><rect x='5' y='5' width='1' height='1' fill='%23000000'/><rect x='6' y='5' width='2' height='1' fill='%23ffffff'/><rect x='8' y='5' width='3' height='1' fill='%23000000'/><rect x='5' y='6' width='1' height='1' fill='%23000000'/><rect x='6' y='6' width='2' height='1' fill='%23ffffff'/><rect x='8' y='6' width='1' height='1' fill='%23000000'/><rect x='9' y='6' width='2' height='1' fill='%23ffffff'/><rect x='11' y='6' width='3' height='1' fill='%23000000'/><rect x='5' y='7' width='1' height='1' fill='%23000000'/><rect x='6' y='7' width='2' height='1' fill='%23ffffff'/><rect x='8' y='7' width='1' height='1' fill='%23000000'/><rect x='9' y='7' width='2' height='1' fill='%23ffffff'/><rect x='11' y='7' width='3' height='1' fill='%23000000'/><rect x='5' y='8' width='1' height='1' fill='%23000000'/><rect x='6' y='8' width='2' height='1' fill='%23ffffff'/><rect x='8' y='8' width='1' height='1' fill='%23000000'/><rect x='9' y='8' width='2' height='1' fill='%23ffffff'/><rect x='11' y='8' width='1' height='1' fill='%23000000'/><rect x='12' y='8' width='2' height='1' fill='%23ffffff'/><rect x='14' y='8' width='2' height='1' fill='%23000000'/><rect x='5' y='9' width='1' height='1' fill='%23000000'/><rect x='6' y='9' width='2' height='1' fill='%23ffffff'/><rect x='8' y='9' width='1' height='1' fill='%23000000'/><rect x='9' y='9' width='2' height='1' fill='%23ffffff'/><rect x='11' y='9' width='1' height='1' fill='%23000000'/><rect x='12' y='9' width='2' height='1' fill='%23ffffff'/><rect x='14' y='9' width='1' height='1' fill='%23000000'/><rect x='15' y='9' width='1' height='1' fill='%23ffffff'/><rect x='16' y='9' width='1' height='1' fill='%23000000'/><rect x='0' y='10' width='4' height='1' fill='%23000000'/><rect x='5' y='10' width='1' height='1' fill='%23000000'/><rect x='6' y='10' width='2' height='1' fill='%23ffffff'/><rect x='8' y='10' width='1' height='1' fill='%23000000'/><rect x='9' y='10' width='2' height='1' fill='%23ffffff'/><rect x='11' y='10' width='1' height='1' fill='%23000000'/><rect x='12' y='10' width='2' height='1' fill='%23ffffff'/><rect x='14' y='10' width='1' height='1' fill='%23000000'/><rect x='15' y='10' width='2' height='1' fill='%23ffffff'/><rect x='17' y='10' width='1' height='1' fill='%23000000'/><rect x='0' y='11' width='2' height='1' fill='%23000000'/><rect x='2' y='11' width='2' height='1' fill='%23ffffff'/><rect x='4' y='11' width='2' height='1' fill='%23000000'/><rect x='6' y='11' width='8' height='1' fill='%23ffffff'/><rect x='14' y='11' width='1' height='1' fill='%23000000'/><rect x='15' y='11' width='2' height='1' fill='%23ffffff'/><rect x='17' y='11' width='1' height='1' fill='%23000000'/><rect x='0' y='12' width='2' height='1' fill='%23000000'/><rect x='2' y='12' width='3' height='1' fill='%23ffffff'/><rect x='5' y='12' width='1' height='1' fill='%23000000'/><rect x='6' y='12' width='11' height='1' fill='%23ffffff'/><rect x='17' y='12' width='1' height='1' fill='%23000000'/><rect x='2' y='13' width='1' height='1' fill='%23000000'/><rect x='3' y='13' width='2' height='1' fill='%23ffffff'/><rect x='5' y='13' width='1' height='1' fill='%23000000'/><rect x='6' y='13' width='11' height='1' fill='%23ffffff'/><rect x='17' y='13' width='1' height='1' fill='%23000000'/><rect x='3' y='14' width='1' height='1' fill='%23000000'/><rect x='4' y='14' width='1' height='1' fill='%23ffffff'/><rect x='5' y='14' width='1' height='1' fill='%23000000'/><rect x='6' y='14' width='11' height='1' fill='%23ffffff'/><rect x='17' y='14' width='1' height='1' fill='%23000000'/><rect x='3' y='15' width='1' height='1' fill='%23000000'/><rect x='4' y='15' width='13' height='1' fill='%23ffffff'/><rect x='17' y='15' width='1' height='1' fill='%23000000'/><rect x='4' y='16' width='1' height='1' fill='%23000000'/><rect x='5' y='16' width='12' height='1' fill='%23ffffff'/><rect x='17' y='16' width='1' height='1' fill='%23000000'/><rect x='4' y='17' width='1' height='1' fill='%23000000'/><rect x='5' y='17' width='11' height='1' fill='%23ffffff'/><rect x='16' y='17' width='1' height='1' fill='%23000000'/><rect x='5' y='18' width='1' height='1' fill='%23000000'/><rect x='6' y='18' width='10' height='1' fill='%23ffffff'/><rect x='16' y='18' width='1' height='1' fill='%23000000'/><rect x='5' y='19' width='1' height='1' fill='%23000000'/><rect x='6' y='19' width='10' height='1' fill='%23ffffff'/><rect x='16' y='19' width='1' height='1' fill='%23000000'/><rect x='6' y='20' width='1' height='1' fill='%23000000'/><rect x='7' y='20' width='8' height='1' fill='%23ffffff'/><rect x='15' y='20' width='1' height='1' fill='%23000000'/><rect x='6' y='21' width='1' height='1' fill='%23000000'/><rect x='7' y='21' width='8' height='1' fill='%23ffffff'/><rect x='15' y='21' width='1' height='1' fill='%23000000'/><rect x='6' y='22' width='10' height='1' fill='%23000000'/>%3C/svg%3E") 6 1, pointer !important;
+}
+
+input[type="text"],
+input[type="search"],
+input[type="password"],
+textarea,
+.monaco-editor,
+.monaco-editor * {
+  cursor: text !important;
 }
 
 /* Custom dark scrollbar */
@@ -117,10 +141,22 @@ html.light ::-webkit-scrollbar-thumb:hover {
   background-color: #f8fafc !important;
 }
 
-.light header,
-.light [class*="bg-[#0d131f]"] {
+.light [class*="bg-[#0d131f]"]:not(header) {
   background-color: rgba(255, 255, 255, 0.96) !important;
   border-color: #e2e8f0 !important;
+}
+
+html.light header {
+  background-color: #ffffff !important;
+  border-bottom: 4px solid #fcb400 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.dark header {
+  background-color: #000000 !important;
+  border-bottom: 4px solid #fcb400 !important;
+  color: #ffffff !important;
 }
 
 .light [class*="bg-[#111726]"],
@@ -166,26 +202,47 @@ html.light ::-webkit-scrollbar-thumb:hover {
 }
 
 /* Typography & Contrast in light mode */
-.light h1,
-.light h2,
-.light h3,
-.light h4,
-.light h5,
-.light h6 {
+.light h1:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *):not(.mario-hud-panel *):not([class*="text-[#fcd800]"]):not([class*="text-[#e52521]"]):not([class*="text-amber"]):not([class*="text-yellow"]):not(.mario-btn *),
+.light h2:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *):not(.mario-hud-panel *):not([class*="text-[#fcd800]"]):not([class*="text-[#e52521]"]):not([class*="text-amber"]):not([class*="text-yellow"]):not(.mario-btn *),
+.light h3:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *):not(.mario-hud-panel *):not([class*="text-[#fcd800]"]):not([class*="text-[#e52521]"]):not([class*="text-amber"]):not([class*="text-yellow"]):not(.mario-btn *),
+.light h4:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *):not(.mario-hud-panel *),
+.light h5:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *):not(.mario-hud-panel *),
+.light h6:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *):not(.mario-hud-panel *) {
   color: #0f172a !important;
 }
 
-.light h1.text-white,
-.light h2.text-white,
-.light h3.text-white,
-.light h4.text-white,
-.light h5.text-white,
-.light h6.text-white,
-.light p.text-white,
-.light span.text-white:not(button *):not([class*="bg-"]),
-.light div.text-white:not(button *):not([class*="bg-"]),
-.light .text-slate-100:not(button *):not([class*="bg-"]) {
+.light h1.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *),
+.light h2.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *),
+.light h3.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *),
+.light h4.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *),
+.light h5.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *),
+.light h6.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *),
+.light p.text-white:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *),
+.light span.text-white:not(button *):not([class*="bg-"]):not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *),
+.light div.text-white:not(button *):not([class*="bg-"]):not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *),
+.light .text-slate-100:not(button *):not([class*="bg-"]):not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *):not(.mario-hud-panel *):not([class*="bg-[#e52521]"] *):not([class*="bg-[#0050d0]"] *):not([class*="bg-[#00a800]"] *) {
   color: #0f172a !important;
+}
+
+/* Retro arcade NES colors must ALWAYS preserve their vibrant authentic tones across light & dark */
+.light [class*="text-[#fcd800]"],
+.light .text-\[\#fcd800\] {
+  color: #fcd800 !important;
+}
+
+.light [class*="text-[#e52521]"],
+.light .text-\[\#e52521\] {
+  color: #e52521 !important;
+}
+
+.light [class*="text-[#00d800]"],
+.light .text-\[\#00d800\] {
+  color: #00d800 !important;
+}
+
+.light [class*="text-[#5c94fc]"],
+.light .text-\[\#5c94fc\] {
+  color: #5c94fc !important;
 }
 
 /* Action and colored buttons must always preserve crisp white text */
@@ -202,7 +259,16 @@ html.light ::-webkit-scrollbar-thumb:hover {
 .light button[class*="bg-amber-600"],
 .light button.bg-slate-800,
 .light [class*="!text-white"],
-.light [class*="!text-white"] * {
+.light [class*="!text-white"] *,
+.light .mario-btn-red,
+.light .mario-btn-green,
+.light .mario-btn-blue,
+.light .mario-hud-panel *,
+.light [class*="bg-black"] .text-white,
+.light [class*="bg-[#000000]"] .text-white,
+.light [class*="bg-[#e52521]"] .text-white,
+.light [class*="bg-[#0050d0]"] .text-white,
+.light [class*="bg-[#00a800]"] .text-white {
   color: #ffffff !important;
 }
 
@@ -221,19 +287,19 @@ html.light ::-webkit-scrollbar-thumb:hover {
   color: #ffffff !important;
 }
 
-.light .text-slate-200 {
+.light .text-slate-200:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *) {
   color: #1e293b !important;
 }
 
-.light .text-slate-300 {
+.light .text-slate-300:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *) {
   color: #334155 !important;
 }
 
-.light .text-slate-400 {
+.light .text-slate-400:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *) {
   color: #64748b !important;
 }
 
-.light .text-slate-500 {
+.light .text-slate-500:not(header *):not([class*="bg-black"] *):not([class*="bg-[#000000]"] *) {
   color: #94a3b8 !important;
 }
 
@@ -368,3 +434,308 @@ html.light ::-webkit-scrollbar-thumb:hover {
   background-color: #bfdbfe;
   color: #1e3a8a;
 }
+
+/* ==========================================================================
+   SUPER MARIO BROS RETRO 8-BIT DESIGN SYSTEM
+   Activated when html.mario-theme is present
+   ========================================================================== */
+
+/* Typography */
+.font-arcade {
+  font-family: 'Press Start 2P', monospace, cursive;
+}
+
+.font-pixel {
+  font-family: 'Pixelify Sans', 'Press Start 2P', monospace;
+}
+
+/* 8-bit Pixel Borders & Box Shadows */
+.mario-border {
+  border: 3px solid #000000;
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 0.9);
+}
+
+.mario-border-lg {
+  border: 4px solid #000000;
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.95);
+}
+
+.mario-border-white {
+  border: 3px solid #000000;
+  box-shadow: inset -3px -3px 0px #000000, inset 3px 3px 0px #ffffff, 3px 3px 0px rgba(0,0,0,0.8);
+}
+
+/* Retro Interactive Buttons */
+.mario-btn {
+  font-family: 'Press Start 2P', monospace;
+  border: 3px solid #000000;
+  box-shadow: 3px 3px 0px 0px #000000;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.mario-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+.mario-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #000000;
+}
+
+.mario-btn-red {
+  background-color: #e52521;
+  color: #ffffff;
+  text-shadow: 2px 2px 0px #000000;
+}
+.mario-btn-red:hover {
+  background-color: #ff3333;
+}
+
+.mario-btn-green {
+  background-color: #00a800;
+  color: #ffffff;
+  text-shadow: 2px 2px 0px #000000;
+}
+.mario-btn-green:hover {
+  background-color: #00c800;
+}
+
+.mario-btn-yellow {
+  background-color: #fcb400;
+  color: #000000;
+  text-shadow: 1px 1px 0px #ffe680;
+}
+.mario-btn-yellow:hover {
+  background-color: #fcd800;
+}
+
+.mario-btn-blue {
+  background-color: #0050d0;
+  color: #ffffff;
+  text-shadow: 2px 2px 0px #000000;
+}
+.mario-btn-blue:hover {
+  background-color: #1068f0;
+}
+
+.mario-btn-dark {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+.mario-btn-dark:hover {
+  background-color: #374151;
+}
+
+/* Super Mario Question Block [ ? ] */
+.mario-question-block {
+  background: #fc9838;
+  background: linear-gradient(135deg, #fcbc3c 0%, #fc9838 50%, #d87010 100%);
+  border: 4px solid #000000;
+  box-shadow: 
+    inset 3px 3px 0px rgba(255, 255, 255, 0.6),
+    inset -3px -3px 0px rgba(0, 0, 0, 0.4),
+    4px 4px 0px 0px rgba(0, 0, 0, 0.9);
+  position: relative;
+  user-select: none;
+}
+
+.mario-question-block::before,
+.mario-question-block::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #5c2000;
+}
+.mario-question-block::before {
+  top: 4px;
+  left: 4px;
+  box-shadow: calc(100% - 16px) 0 0 #5c2000;
+}
+.mario-question-block::after {
+  bottom: 4px;
+  left: 4px;
+  box-shadow: calc(100% - 16px) 0 0 #5c2000;
+}
+
+/* Brick Block Pattern */
+.mario-brick-pattern {
+  background-color: #b84418;
+  background-image: 
+    linear-gradient(90deg, #000 2px, transparent 2px),
+    linear-gradient(#000 2px, transparent 2px);
+  background-size: 24px 14px;
+  border: 3px solid #000000;
+  box-shadow: inset 2px 2px 0px #fc9838, inset -2px -2px 0px #601800, 3px 3px 0px rgba(0,0,0,0.8);
+}
+
+/* Warp Pipe Gradient & Styling */
+.mario-pipe {
+  background: linear-gradient(90deg, #005000 0%, #009000 20%, #00d800 40%, #00a000 70%, #005000 100%);
+  border: 3px solid #000000;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.8);
+}
+
+.mario-pipe-rim {
+  background: linear-gradient(90deg, #005000 0%, #009000 18%, #00e800 38%, #00a000 68%, #004800 100%);
+  border: 3px solid #000000;
+  box-shadow: 0 4px 0px rgba(0,0,0,0.4);
+}
+
+/* Mario HUD Text & Badges */
+.mario-hud-panel {
+  background-color: #000000;
+  border: 3px solid #ffffff;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.7);
+  font-family: 'Press Start 2P', monospace;
+  color: #ffffff;
+}
+
+/* Animations */
+@keyframes coinSpin {
+  0% { transform: scaleX(1); }
+  25% { transform: scaleX(0.2); }
+  50% { transform: scaleX(1); filter: brightness(1.2); }
+  75% { transform: scaleX(0.2); }
+  100% { transform: scaleX(1); }
+}
+
+.mario-coin {
+  display: inline-block;
+  animation: coinSpin 0.8s infinite steps(4);
+}
+
+@keyframes marioBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.mario-blink {
+  animation: marioBlink 1s infinite steps(1);
+}
+
+@keyframes blockBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.mario-bounce {
+  animation: blockBounce 1.8s infinite ease-in-out;
+}
+
+@keyframes floatSkyClouds {
+  0% { background-position: 0 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* ==========================================================================
+   THEME STYLES: MARIO OVERWORLD (Day Sky 1-1)
+   ========================================================================== */
+html.mario-overworld {
+  color-scheme: light;
+}
+
+html.mario-overworld body {
+  background-color: #5c94fc;
+  color: #111827;
+  background-image: 
+    radial-gradient(ellipse at 15% 20%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 30px, transparent 35px),
+    radial-gradient(ellipse at 20% 18%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 45px, transparent 50px),
+    radial-gradient(ellipse at 25% 20%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.75) 30px, transparent 35px),
+    radial-gradient(ellipse at 75% 15%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.7) 30px, transparent 35px),
+    radial-gradient(ellipse at 80% 13%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.7) 45px, transparent 50px),
+    radial-gradient(ellipse at 85% 15%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.7) 30px, transparent 35px);
+  background-attachment: fixed;
+  background-size: 800px 600px;
+}
+
+/* Header in Overworld */
+html.mario-overworld header {
+  background: #000000 !important;
+  border-bottom: 4px solid #fcb400 !important;
+  color: #ffffff;
+}
+
+/* Cards & containers in Overworld */
+html.mario-overworld .mario-card {
+  background: #ffffff;
+  border: 4px solid #000000;
+  box-shadow: 5px 5px 0px 0px #000000;
+}
+
+/* ==========================================================================
+   THEME STYLES: MARIO UNDERGROUND (World 1-2)
+   ========================================================================== */
+html.mario-underground {
+  color-scheme: dark;
+}
+
+html.mario-underground body {
+  background-color: #0b0f20;
+  color: #f1f5f9;
+  background-image: 
+    radial-gradient(rgba(32, 56, 236, 0.15) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+html.mario-underground header {
+  background: #050710 !important;
+  border-bottom: 4px solid #2038ec !important;
+}
+
+html.mario-underground .mario-card {
+  background: #12182b;
+  border: 4px solid #000000;
+  box-shadow: 5px 5px 0px 0px #2038ec;
+}
+
+/* ==========================================================================
+   THEME STYLES: MARIO BOWSER CASTLE (World 8-4)
+   ========================================================================== */
+html.mario-castle {
+  color-scheme: dark;
+}
+
+html.mario-castle body {
+  background-color: #120404;
+  color: #fed7aa;
+  background-image: 
+    radial-gradient(rgba(216, 40, 0, 0.18) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+html.mario-castle header {
+  background: #080202 !important;
+  border-bottom: 4px solid #d82800 !important;
+}
+
+html.mario-castle .mario-card {
+  background: #1c0a0a;
+  border: 4px solid #000000;
+  box-shadow: 5px 5px 0px 0px #d82800;
+}
+
+/* Scrollbar in Mario Theme */
+html.mario-theme ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html.mario-theme ::-webkit-scrollbar-track {
+  background: #000000;
+  border: 2px solid #333333;
+}
+
+html.mario-theme ::-webkit-scrollbar-thumb {
+  background: #00a800;
+  border: 2px solid #000000;
+  border-radius: 0px;
+}
+
+html.mario-theme ::-webkit-scrollbar-thumb:hover {
+  background: #00d800;
+}
+

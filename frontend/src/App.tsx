@@ -118,7 +118,13 @@ export const App: React.FC = () => {
   return (
     <div
       className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
-        theme === 'light'
+        theme === 'mario-overworld'
+          ? 'bg-[#5c94fc] text-slate-900 selection:bg-[#fcd800] selection:text-black'
+          : theme === 'mario-underground'
+          ? 'bg-[#0b0f20] text-white selection:bg-[#2038ec] selection:text-white'
+          : theme === 'mario-castle'
+          ? 'bg-[#120404] text-[#fed7aa] selection:bg-[#d82800] selection:text-white'
+          : theme === 'light'
           ? 'bg-[#f8fafc] text-slate-900 selection:bg-emerald-500/30 selection:text-emerald-700'
           : 'bg-[#0b0f17] text-slate-100 selection:bg-emerald-500/30 selection:text-emerald-300'
       }`}

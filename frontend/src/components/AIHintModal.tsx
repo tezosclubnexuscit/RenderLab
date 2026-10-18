@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Loader2, Lightbulb, Send, RefreshCw, MessageSquare } from 'lucide-react';
+import { X, Sparkles, Loader2, Send } from 'lucide-react';
 import { Challenge, LLMConfig } from '../types';
 import { api } from '../services/api';
+import { marioSound } from '../services/soundService';
+import { useTheme } from '../context/ThemeContext';
 
 interface AIHintModalProps {
   isOpen: boolean;
@@ -24,6 +26,12 @@ export const AIHintModal: React.FC<AIHintModalProps> = ({
   failedTests,
   llmConfig,
 }) => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+  const isUnderground = theme === 'mario-underground';
+  const isCastle = theme === 'mario-castle';
+  const isDark = theme === 'dark';
+
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,16 +40,15 @@ export const AIHintModal: React.FC<AIHintModalProps> = ({
 
   useEffect(() => {
     if (isOpen && challenge) {
-      // Load initial pedagogical hint when modal opens
+      marioSound.playBlockBump();
       loadHint();
     } else {
-      // Clear all state when closed so no stale history shows on next open
       setUserQuestion('');
       setHistory([]);
       setHint(null);
       setError(null);
     }
-  }, [isOpen, challenge.id]);
+  }, [isOpen, challenge?.id]);
 
   const loadHint = async (customQ?: string) => {
     setLoading(true);
@@ -65,6 +72,7 @@ export const AIHintModal: React.FC<AIHintModalProps> = ({
 
       setHint(res.hint);
       setHistory((prev) => [...prev, { role: 'tutor', text: res.hint }]);
+      marioSound.playCoin();
     } catch (err: any) {
       setError(err.message || 'Failed to fetch AI tutor hint. Please check your AI Settings.');
     } finally {
@@ -80,42 +88,97 @@ export const AIHintModal: React.FC<AIHintModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Modal Container style per theme
+  const modalContainerClass = isLight
+    ? 'bg-white border-4 border-black text-slate-900 shadow-[8px_8px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#050710] border-4 border-[#2038ec] text-slate-100 shadow-[8px_8px_0px_#2038ec]'
+    : isCastle
+    ? 'bg-[#080202] border-4 border-[#d82800] text-amber-100 shadow-[8px_8px_0px_#d82800]'
+    : isDark
+    ? 'bg-[#111726] border-4 border-slate-700 text-white shadow-[8px_8px_0px_#000]'
+    : 'bg-[#000000] border-4 border-white text-white shadow-[8px_8px_0px_#000]';
+
+  // Chat bubbles styling
+  const userBubbleClass = isLight
+    ? 'bg-blue-50 border-blue-400 text-slate-900'
+    : isUnderground
+    ? 'bg-[#12182b] border-[#2038ec] text-cyan-200'
+    : isCastle
+    ? 'bg-[#1c0a0a] border-[#d82800] text-amber-200'
+    : 'bg-slate-900 border-slate-600 text-cyan-200';
+
+  const tutorBubbleClass = isLight
+    ? 'bg-amber-50 border-amber-500 text-slate-900 shadow-[3px_3px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#0b0f20] border-[#fcd800] text-slate-100 shadow-[3px_3px_0px_#2038ec]'
+    : isCastle
+    ? 'bg-[#120404] border-[#fc9838] text-amber-100 shadow-[3px_3px_0px_#d82800]'
+    : 'bg-black border-[#fcd800] text-slate-100 shadow-[3px_3px_0px_#000]';
+
+  // Bottom form container
+  const formContainerClass = isLight
+    ? 'bg-slate-100 border-t-2 border-black'
+    : isUnderground
+    ? 'bg-[#050710] border-t-2 border-[#2038ec]'
+    : isCastle
+    ? 'bg-[#080202] border-t-2 border-[#d82800]'
+    : 'bg-slate-950 border-t-2 border-white';
+
+  const inputClass = isLight
+    ? 'bg-white border-2 border-black text-slate-900 placeholder:text-slate-400 focus:border-[#fcb400]'
+    : isUnderground
+    ? 'bg-[#0b0f20] border-2 border-[#2038ec] text-white placeholder:text-slate-500 focus:border-[#5c94fc]'
+    : isCastle
+    ? 'bg-[#120404] border-2 border-[#d82800] text-amber-100 placeholder:text-amber-500/50 focus:border-[#fc9838]'
+    : 'bg-black border-2 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#fcd800]';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#111726] border border-slate-750 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        {/* Header */}
-        <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className={`w-full max-w-lg flex flex-col max-h-[85vh] ${modalContainerClass}`}>
+        {/* Header: Toad's House */}
+        <div className="px-4 py-3 border-b-2 border-black flex items-center justify-between bg-[#e52521] text-white">
           <div className="flex items-center space-x-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <Lightbulb className="w-4 h-4" />
-            </div>
+            <div className="text-2xl">🍄</div>
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <span>AI Tutor Guidance</span>
-                <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                  Interactive
-                </span>
+              <h3 className="font-arcade text-xs text-[#fcd800] !text-[#fcd800] drop-shadow-[1px_1px_0px_#000]">
+                TOAD'S HOUSE OF HINTS
               </h3>
-              <p className="text-[11px] text-slate-400">
-                Powered by {llmConfig?.model || 'active model'} ({llmConfig?.provider || 'local'})
+              <p className="font-pixel text-[11px] text-white/90">
+                AI Powered by {llmConfig?.provider || 'Active Engine'}
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            onClick={() => {
+              marioSound.playBlockBump();
+              onClose();
+            }}
+            className="mario-btn mario-btn-dark px-2 py-0.5 text-xs font-arcade"
           >
-            <X className="w-4 h-4" />
+            ✕
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-4 overflow-y-auto flex-1">
+        <div className="p-4 space-y-3 overflow-y-auto flex-1 font-pixel">
           {/* Failed tests alert */}
           {failedTests.length > 0 && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-xs">
-              <span className="font-semibold text-rose-300">Targeting Failed Checks:</span>
-              <ul className="list-disc list-inside mt-1 text-slate-300 space-y-0.5">
+            <div
+              className={`p-3 border-2 text-xs ${
+                isLight
+                  ? 'bg-red-50 border-red-500 text-red-900'
+                  : 'bg-red-950/60 border-red-600 text-red-200'
+              }`}
+            >
+              <span
+                className={`font-arcade text-[9px] block mb-1 ${
+                  isLight ? 'text-red-700 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                TARGETING FAILED CHECKS:
+              </span>
+              <ul className="list-disc list-inside space-y-0.5">
                 {failedTests.map((t, idx) => (
                   <li key={idx} className="text-[11px] font-mono">{t}</li>
                 ))}
@@ -129,110 +192,78 @@ export const AIHintModal: React.FC<AIHintModalProps> = ({
               {history.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`p-3.5 rounded-xl text-xs leading-relaxed ${
+                  className={`p-3 border-2 leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-indigo-600/15 border border-indigo-500/30 text-indigo-200 ml-6'
-                      : 'bg-slate-900/90 border border-slate-750 text-slate-200 mr-2 whitespace-pre-line'
+                      ? `ml-4 ${userBubbleClass}`
+                      : `mr-2 whitespace-pre-line ${tutorBubbleClass}`
                   }`}
                 >
-                  <div className="flex items-center space-x-1.5 font-semibold text-[10px] uppercase tracking-wider mb-1.5">
+                  <div className="flex items-center space-x-1.5 font-arcade text-[9px] mb-1">
                     {msg.role === 'user' ? (
-                      <>
-                        <MessageSquare className="w-3 h-3 text-indigo-400" />
-                        <span className="text-indigo-300">Your Question</span>
-                      </>
+                      <span className={isLight ? 'text-blue-700 font-bold' : 'text-cyan-400'}>
+                        YOUR QUESTION:
+                      </span>
                     ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="text-amber-400">Tutor Guidance</span>
-                      </>
+                      <span className={isLight ? 'text-amber-800 font-bold' : 'text-[#fcd800]'}>
+                        TOAD'S ADVICE:
+                      </span>
                     )}
                   </div>
-                  <p className="text-slate-300">{msg.text}</p>
+                  <p className="text-xs">{msg.text}</p>
                 </div>
               ))}
             </div>
           ) : hint && !loading ? (
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-750 text-slate-200 text-xs leading-relaxed space-y-2 whitespace-pre-line">
-              <div className="flex items-center space-x-1.5 text-amber-400 font-semibold text-[11px] uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Pedagogical Hint</span>
+            <div className={`p-3 border-2 text-xs leading-relaxed space-y-1.5 whitespace-pre-line ${tutorBubbleClass}`}>
+              <div className={`font-arcade text-[9px] ${isLight ? 'text-amber-800 font-bold' : 'text-[#fcd800]'}`}>
+                TOAD'S ADVICE:
               </div>
-              <p className="text-slate-300">{hint}</p>
+              <p>{hint}</p>
             </div>
           ) : null}
 
           {/* Loading State */}
           {loading && (
-            <div className="py-6 flex flex-col items-center justify-center space-y-2 text-slate-400 text-xs">
-              <Loader2 className="w-5 h-5 animate-spin text-amber-400" />
-              <span>Analyzing code and generating targeted hint...</span>
+            <div className="py-6 flex flex-col items-center justify-center space-y-2 text-[#fcd800] font-arcade text-[10px]">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className={isLight ? 'text-amber-700 font-bold' : 'text-[#fcd800]'}>
+                CONSULTING THE TOAD SAGES...
+              </span>
             </div>
           )}
 
           {/* Error State */}
           {error && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+            <div
+              className={`p-3 border-2 text-xs ${
+                isLight
+                  ? 'bg-red-50 border-red-500 text-red-900'
+                  : 'bg-red-950 border-red-600 text-red-200'
+              }`}
+            >
               {error}
-            </div>
-          )}
-
-          {/* Built-in static clues */}
-          {challenge.hints && challenge.hints.length > 0 && (
-            <div className="pt-2">
-              <span className="text-[11px] font-semibold text-slate-400 block mb-1.5 uppercase">
-                Challenge Static Clues:
-              </span>
-              <div className="space-y-1.5">
-                {challenge.hints.map((h, i) => (
-                  <div
-                    key={i}
-                    className="p-2.5 rounded-lg bg-slate-900/50 border border-slate-800 text-[11px] text-slate-400"
-                  >
-                    💡 {h}
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>
 
-        {/* Interactive Custom Question Form */}
-        <form onSubmit={handleAskQuestion} className="p-3 border-t border-slate-800 bg-slate-900/70 flex gap-2">
+        {/* Input Bar */}
+        <form onSubmit={handleAskQuestion} className={`p-3 flex gap-2 ${formContainerClass}`}>
           <input
             type="text"
             value={userQuestion}
             onChange={(e) => setUserQuestion(e.target.value)}
-            placeholder="Ask a specific question (e.g. How do I fix the transition?)"
-            className="flex-1 bg-slate-950 border border-slate-750 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            placeholder="Ask Toad for advice without spoiling..."
+            className={`flex-1 px-3 py-1.5 text-xs font-pixel focus:outline-none ${inputClass}`}
           />
           <button
             type="submit"
             disabled={loading || !userQuestion.trim()}
-            className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-semibold text-xs flex items-center space-x-1"
+            className="mario-btn mario-btn-yellow px-3 py-1.5 text-[10px] font-arcade text-black disabled:opacity-50 flex items-center space-x-1"
           >
+            <span>ASK</span>
             <Send className="w-3 h-3" />
-            <span>Ask</span>
           </button>
         </form>
-
-        {/* Footer Actions */}
-        <div className="px-5 py-2.5 border-t border-slate-800 bg-slate-900/40 flex items-center justify-between">
-          <button
-            onClick={() => loadHint()}
-            disabled={loading}
-            className="text-xs text-amber-400 hover:underline flex items-center space-x-1.5 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-            <span>Analyze latest code</span>
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold"
-          >
-            Got it, back to coding
-          </button>
-        </div>
       </div>
     </div>
   );

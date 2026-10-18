@@ -1,20 +1,17 @@
 import React from 'react';
 import {
-  Code2,
   Sparkles,
   ArrowRight,
-  LayoutGrid,
-  CheckCircle2,
-  Layers,
-  Cpu,
-  Monitor,
   Flame,
-  Check,
+  Award,
+  Gamepad2,
+  Play,
   Zap,
 } from 'lucide-react';
 import { ChallengeListItem } from '../types';
 import { getChallengeCategory } from './ChallengeBrowser';
 import { useTheme } from '../context/ThemeContext';
+import { marioSound } from '../services/soundService';
 
 interface LandingPageProps {
   onStartPracticing: () => void;
@@ -32,18 +29,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   challenges,
 }) => {
   const { theme } = useTheme();
+  const isLight = theme === 'light';
+  const isUnderground = theme === 'mario-underground';
+  const isCastle = theme === 'mario-castle';
+  const isDark = theme === 'dark';
+
   const featuredChallenges = challenges.slice(0, 3);
 
-  const getDifficultyColor = (diff: string) => {
+  const getDifficultyBadge = (diff: string) => {
     switch (diff) {
       case 'easy':
-        return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+        return {
+          icon: '🍄',
+          label: 'WORLD 1 (EASY)',
+          color: 'bg-[#00a800] text-white border-black',
+        };
       case 'medium':
-        return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+        return {
+          icon: '🔥',
+          label: 'WORLD 2 (MED)',
+          color: 'bg-[#fc9838] text-black border-black',
+        };
       case 'hard':
-        return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
+        return {
+          icon: '👑',
+          label: 'BOWSER (HARD)',
+          color: 'bg-[#e52521] text-white border-black',
+        };
       default:
-        return 'text-slate-400 bg-slate-800 border-slate-700';
+        return {
+          icon: '⭐',
+          label: 'BONUS',
+          color: 'bg-slate-800 text-white border-black',
+        };
     }
   };
 
@@ -52,478 +70,445 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       case 'fill_blanks':
         return 'Fill In Blanks';
       case 'fix_broken':
-        return 'Fix Bugs';
+        return 'Bug Fix Run';
       case 'build_component':
         return 'Build Component';
       case 'recreate_page':
-        return 'Recreate Page';
+        return 'World Clear';
       default:
         return mode;
     }
   };
 
-  return (
-    <div className="flex-1 overflow-y-auto">
-      {/* ================= HERO SECTION ================= */}
-      <section className="relative px-6 pt-16 pb-20 md:pt-24 md:pb-28 max-w-6xl mx-auto flex flex-col items-center text-center">
-        {/* Ambient background glow */}
-        <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] blur-3xl rounded-full pointer-events-none -z-10 ${
-            theme === 'light'
-              ? 'bg-gradient-to-tr from-emerald-400/10 via-indigo-400/10 to-cyan-400/10'
-              : 'bg-gradient-to-tr from-emerald-500/15 via-indigo-500/15 to-cyan-500/15'
-          }`}
-        />
+  // 8-bit Banner Badge at top
+  const heroBadgeClass = isLight
+    ? 'bg-white border-2 border-black text-slate-900 shadow-[3px_3px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#050710] border-2 border-[#2038ec] text-white shadow-[3px_3px_0px_#2038ec]'
+    : isCastle
+    ? 'bg-[#080202] border-2 border-[#d82800] text-amber-100 shadow-[3px_3px_0px_#d82800]'
+    : 'bg-[#000000] border-2 border-white text-white shadow-[3px_3px_0px_#000]';
 
-        {/* Shimmer Pill Badge */}
+  // Hero Subtitle style
+  const heroSubtitleClass = isUnderground
+    ? 'bg-[#12182b]/95 border-2 border-[#2038ec] text-slate-100 shadow-[4px_4px_0px_#050710]'
+    : isCastle
+    ? 'bg-[#1c0a0a]/95 border-2 border-[#d82800] text-amber-100 shadow-[4px_4px_0px_#080202]'
+    : isDark
+    ? 'bg-[#111726]/95 border-2 border-slate-700 text-slate-200 shadow-[4px_4px_0px_#000]'
+    : isLight
+    ? 'bg-white/95 border-2 border-black text-slate-900 shadow-[4px_4px_0px_#000]'
+    : 'bg-white/90 border-2 border-black text-slate-900 shadow-[4px_4px_0px_#000]';
+
+  // Metric HUD Box style per theme
+  const hudBoxClass = isLight
+    ? 'bg-white border-4 border-black shadow-[4px_4px_0px_#000] text-slate-900'
+    : isUnderground
+    ? 'bg-[#050710] border-4 border-[#2038ec] shadow-[4px_4px_0px_#2038ec] text-white'
+    : isCastle
+    ? 'bg-[#080202] border-4 border-[#d82800] shadow-[4px_4px_0px_#d82800] text-amber-100'
+    : isDark
+    ? 'bg-[#111726] border-4 border-slate-700 shadow-[4px_4px_0px_#000] text-white'
+    : 'bg-[#000000] border-4 border-white shadow-[4px_4px_0px_#000] text-white';
+
+  const hudStagesLabelClass = isLight ? 'text-[#b84418]' : 'text-[#fcd800]';
+  const hudWorldsLabelClass = isLight ? 'text-[#008000]' : 'text-[#00d800]';
+  const hudSandboxLabelClass = isLight ? 'text-[#0050d0]' : 'text-[#5c94fc]';
+  const hudAiLabelClass = isLight ? 'text-[#e52521]' : 'text-[#e52521]';
+
+  const hudValueClass = isLight
+    ? 'text-slate-950 font-bold'
+    : isCastle
+    ? 'text-amber-100 font-bold'
+    : 'text-white font-bold';
+
+  // Featured cards style
+  const cardClass = isLight
+    ? 'bg-white border-4 border-black p-4 shadow-[5px_5px_0px_#000] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#12182b] border-4 border-[#2038ec] p-4 shadow-[5px_5px_0px_#050710] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#2038ec] hover:border-[#5c94fc]'
+    : isCastle
+    ? 'bg-[#1c0a0a] border-4 border-[#d82800] p-4 shadow-[5px_5px_0px_#080202] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#d82800] hover:border-[#fc9838]'
+    : isDark
+    ? 'bg-[#111726] border-4 border-slate-700 p-4 shadow-[5px_5px_0px_#000] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000] hover:border-slate-500'
+    : 'bg-white border-4 border-black p-4 shadow-[5px_5px_0px_#000] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000]';
+
+  const cardTitleClass = isLight
+    ? 'text-slate-950 hover:text-[#e52521]'
+    : isUnderground
+    ? 'text-slate-100 hover:text-[#5c94fc]'
+    : isCastle
+    ? 'text-amber-100 hover:text-[#fcd800]'
+    : isDark
+    ? 'text-slate-100 hover:text-[#fcd800]'
+    : 'text-slate-950 hover:text-[#e52521]';
+
+  const cardDescClass = isLight
+    ? 'text-slate-600'
+    : isUnderground
+    ? 'text-slate-400'
+    : isCastle
+    ? 'text-amber-200/70'
+    : isDark
+    ? 'text-slate-400'
+    : 'text-slate-600';
+
+  const cardDividerClass = isUnderground
+    ? 'border-[#2038ec]/50'
+    : isCastle
+    ? 'border-[#d82800]/50'
+    : isDark
+    ? 'border-slate-700'
+    : 'border-black';
+
+  // Power-Ups Outer container
+  const powerUpsContainerClass = isLight
+    ? 'bg-white border-4 border-black text-slate-900 shadow-[6px_6px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#050710] border-4 border-[#2038ec] text-slate-100 shadow-[6px_6px_0px_#2038ec]'
+    : isCastle
+    ? 'bg-[#080202] border-4 border-[#d82800] text-amber-100 shadow-[6px_6px_0px_#d82800]'
+    : isDark
+    ? 'bg-[#111726] border-4 border-slate-700 text-white shadow-[6px_6px_0px_#000]'
+    : 'bg-[#000000] border-4 border-white text-white shadow-[6px_6px_0px_#000]';
+
+  // Power-Ups Inner Card
+  const powerUpItemClass = isLight
+    ? 'bg-slate-50 border-4 border-black text-slate-900 shadow-[4px_4px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#12182b] border-4 border-[#2038ec] text-slate-100 shadow-[4px_4px_0px_#050710] hover:border-[#5c94fc]'
+    : isCastle
+    ? 'bg-[#1c0a0a] border-4 border-[#d82800] text-amber-100 shadow-[4px_4px_0px_#080202] hover:border-[#fc9838]'
+    : isDark
+    ? 'bg-slate-900 border-4 border-slate-700 text-slate-100 shadow-[4px_4px_0px_#000]'
+    : 'bg-white border-4 border-black text-slate-900 shadow-[4px_4px_0px_#000]';
+
+  // Power-Up item text classes
+  const powerUpTitleClass = isLight
+    ? 'text-slate-950 font-bold'
+    : isUnderground
+    ? 'text-[#5c94fc] font-bold'
+    : isCastle
+    ? 'text-amber-300 font-bold'
+    : isDark
+    ? 'text-[#fcd800] font-bold'
+    : 'text-slate-950 font-bold';
+
+  const powerUpDescClass = isLight
+    ? 'text-slate-700 font-medium'
+    : isUnderground
+    ? 'text-slate-200'
+    : isCastle
+    ? 'text-amber-100/90'
+    : isDark
+    ? 'text-slate-300'
+    : 'text-slate-800 font-medium';
+
+  // Footer styling
+  const footerClass = isUnderground
+    ? 'bg-[#050814] border-t-4 border-[#2038ec] text-cyan-300'
+    : isCastle
+    ? 'bg-[#180404] border-t-4 border-[#d82800] text-amber-300'
+    : isLight
+    ? 'bg-slate-100 border-t-4 border-black text-slate-700'
+    : 'bg-[#803800] border-t-4 border-black text-[#fce4a0]';
+
+  return (
+    <div className="flex-1 overflow-y-auto relative">
+      {/* ================= MARIO TITLE SCREEN HERO ================= */}
+      <section className="relative px-4 pt-10 pb-16 md:pt-16 md:pb-24 max-w-5xl mx-auto flex flex-col items-center text-center">
+        {/* Floating Hero Mascot: Mario Mushroom */}
         <div
-          className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold mb-6 shadow-sm border transition-colors ${
-            theme === 'light'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
-          }`}
+          onClick={() => {
+            marioSound.play1Up();
+          }}
+          className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-pointer mb-6 mario-bounce drop-shadow-[4px_4px_0px_#000000] hover:scale-110 transition-transform"
+          title="Super Mushroom! 1-UP!"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-          <span>Interactive Frontend Practice & Automated Evaluation</span>
+          <img src="/favicon.svg" alt="Super Mario Mushroom" className="w-12 h-12 md:w-14 md:h-14 [image-rendering:pixelated]" />
         </div>
 
-        {/* Hero Title */}
-        <h1
-          className={`text-4xl md:text-6xl font-black tracking-tight max-w-4xl leading-tight ${
-            theme === 'light' ? 'text-slate-900' : 'text-white'
-          }`}
-        >
-          Master Real-World{' '}
-          <span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 bg-clip-text text-transparent">
-            Frontend Code
-          </span>{' '}
-          By Doing.
+        {/* 8-bit Banner Badge */}
+        <div className={`inline-flex items-center space-x-2 px-3 py-1 text-[10px] md:text-xs font-arcade mb-6 ${heroBadgeClass}`}>
+          <span className="text-[#fcd800] mario-coin font-bold">🪙</span>
+          <span>NES ARCADE EDITION — 2026 EDITION</span>
+        </div>
+
+        {/* Mario Retro Arcade Title */}
+        <h1 className="font-arcade text-3xl sm:text-5xl md:text-6xl tracking-wider leading-tight max-w-4xl select-none">
+          <span className="block text-[#fcd800] [paint-order:stroke_fill] [-webkit-text-stroke:2px_#000000] drop-shadow-[4px_4px_0px_#b84418]">
+            SUPER RENDERLAB
+          </span>
         </h1>
 
-        {/* Subtitle */}
-        <p
-          className={`mt-5 text-sm md:text-base max-w-2xl leading-relaxed ${
-            theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-          }`}
-        >
-          The LeetCode-style environment tailored for HTML, CSS, and modern JavaScript.
-          Write solutions in a full Monaco IDE, test in real-time sandboxes, and compare against reference designs.
+        {/* Subtitle / Retro Mission Prompt */}
+        <p className={`mt-6 text-xs sm:text-sm md:text-base font-pixel max-w-2xl p-3 leading-relaxed ${heroSubtitleClass}`}>
+          Level up your frontend agility! Battle bugs, conquer DOM trees, and defeat Bowser's broken layouts in an authentic 8-bit live coding arena.
         </p>
 
-        {/* Hero Actions */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {/* Arcade Insert Coin / Action Buttons */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <button
-            onClick={onStartPracticing}
-            className="flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 !text-slate-950 shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => {
+              marioSound.play1Up();
+              onStartPracticing();
+            }}
+            className="mario-btn mario-btn-red px-6 py-3 text-xs md:text-sm font-arcade flex items-center space-x-2.5"
           >
-            <span className="!text-slate-950">Start Practicing</span>
-            <ArrowRight className="w-4 h-4 !text-slate-950" />
+            <Gamepad2 className="w-4 h-4 text-white" />
+            <span>PRESS START [1P]</span>
           </button>
 
           <button
-            onClick={onExploreChallenges}
-            className={`flex items-center space-x-2 px-5 py-3 rounded-lg text-sm font-semibold transition-colors ${
-              theme === 'light'
-                ? 'bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 shadow-sm'
-                : 'bg-slate-850 hover:bg-slate-800 border border-slate-750 text-slate-200'
-            }`}
+            onClick={() => {
+              marioSound.playPipe();
+              onExploreChallenges();
+            }}
+            className="mario-btn mario-btn-green px-5 py-3 text-xs md:text-sm font-arcade flex items-center space-x-2"
           >
-            <LayoutGrid className="w-4 h-4 text-cyan-500" />
-            <span>Explore Challenges</span>
+            <span>WARP ZONE</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
 
           <button
-            onClick={onOpenGenerator}
-            className={`flex items-center space-x-2 px-5 py-3 rounded-lg text-sm font-semibold transition-colors ${
-              theme === 'light'
-                ? 'bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 shadow-sm'
-                : 'bg-slate-850 hover:bg-slate-800 border border-slate-750 text-slate-200'
-            }`}
+            onClick={() => {
+              marioSound.playBlockBump();
+              onOpenGenerator();
+            }}
+            className="mario-btn mario-btn-yellow px-5 py-3 text-xs md:text-sm font-arcade flex items-center space-x-2 text-black"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>AI Generator</span>
+            <Sparkles className="w-4 h-4" />
+            <span>AI LEVEL [?]</span>
           </button>
         </div>
 
-        {/* Quick Metrics Bar */}
-        <div
-          className={`mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-3xl pt-8 border-t ${
-            theme === 'light' ? 'border-slate-200' : 'border-slate-800/80'
-          }`}
-        >
-          <div className="flex flex-col items-center">
-            <span
-              className={`text-2xl font-black ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              300+
-            </span>
-            <span
-              className={`text-xs mt-0.5 ${
-                theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-              }`}
-            >
-              Curated Challenges
-            </span>
+        {/* Retro Game Metrics HUD Tally - Linked to Database */}
+        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-3xl">
+          <div className={`${hudBoxClass} p-3 text-center`}>
+            <div className={`${hudStagesLabelClass} text-[10px] mb-1 font-arcade font-bold`}>STAGES</div>
+            <div className={`text-base font-arcade ${hudValueClass}`}>
+              {challenges.length > 0 ? challenges.length : '300+'}
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <span
-              className={`text-2xl font-black ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              3
-            </span>
-            <span
-              className={`text-xs mt-0.5 ${
-                theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-              }`}
-            >
-              Core Categories (HTML, CSS, JS)
-            </span>
+          <div className={`${hudBoxClass} p-3 text-center`}>
+            <div className={`${hudWorldsLabelClass} text-[10px] mb-1 font-arcade font-bold`}>WORLDS</div>
+            <div className={`text-[9px] sm:text-[10px] md:text-xs font-arcade ${hudValueClass} tracking-tight truncate leading-tight px-0.5`}>
+              HTML • CSS • JS
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <span
-              className={`text-2xl font-black ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              100%
-            </span>
-            <span
-              className={`text-xs mt-0.5 ${
-                theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-              }`}
-            >
-              In-Browser Sandbox
-            </span>
+          <div className={`${hudBoxClass} p-3 text-center`}>
+            <div className={`${hudSandboxLabelClass} text-[10px] mb-1 font-arcade font-bold`}>SANDBOX</div>
+            <div className={`text-base font-arcade ${hudValueClass}`}>60 FPS</div>
           </div>
-          <div className="flex flex-col items-center">
-            <span
-              className={`text-2xl font-black ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              Offline
-            </span>
-            <span
-              className={`text-xs mt-0.5 ${
-                theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-              }`}
-            >
-              Local AI Powered
-            </span>
+          <div className={`${hudBoxClass} p-3 text-center`}>
+            <div className={`${hudAiLabelClass} text-[10px] mb-1 font-arcade font-bold`}>AI ENGINE</div>
+            <div className={`text-base font-arcade ${hudValueClass}`}>DUAL LLM</div>
           </div>
         </div>
       </section>
 
-      {/* ================= FEATURED CHALLENGES ================= */}
+      {/* ================= MARIO BRICK ROAD DIVIDER ================= */}
+      <div className="h-6 w-full mario-brick-pattern border-y-2 border-black" />
+
+      {/* ================= FEATURED STAGES (WORLD 1-1, 1-2, 1-3) ================= */}
       {featuredChallenges.length > 0 && (
-        <section
-          className={`px-6 py-12 max-w-6xl mx-auto border-t ${
-            theme === 'light' ? 'border-slate-200' : 'border-slate-800/60'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-6">
+        <section className="px-4 py-12 max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
             <div>
-              <h2
-                className={`text-lg font-bold flex items-center space-x-2 ${
-                  theme === 'light' ? 'text-slate-900' : 'text-white'
-                }`}
-              >
-                <Flame className="w-4 h-4 text-amber-500" />
-                <span>Popular Starter Challenges</span>
+              <h2 className={`font-arcade text-base sm:text-lg flex items-center space-x-2 ${
+                isLight ? 'text-[#b84418] drop-shadow-[1px_1px_0px_#fcd800]' : isUnderground ? 'text-[#5c94fc] drop-shadow-[2px_2px_0px_#2038ec]' : isCastle ? 'text-[#fcd800] drop-shadow-[2px_2px_0px_#d82800]' : 'text-[#fcd800] [paint-order:stroke_fill] [-webkit-text-stroke:2px_#000000] drop-shadow-[3px_3px_0px_#000000]'
+              }`}>
+                <span>⭐</span>
+                <span>FEATURED LEVEL SELECT</span>
               </h2>
               <p
-                className={`text-xs mt-0.5 ${
-                  theme === 'light' ? 'text-slate-500' : 'text-slate-400'
+                className={`font-pixel text-xs mt-1 font-semibold ${
+                  isLight ? 'text-slate-800' : isCastle ? 'text-amber-200' : 'text-slate-200'
                 }`}
               >
-                Pick a challenge to immediately dive into the workspace.
+                Jump into popular frontline challenges and start collecting XP coins!
               </p>
             </div>
             <button
-              onClick={onExploreChallenges}
-              className="text-xs font-semibold text-emerald-500 hover:text-emerald-600 flex items-center space-x-1 transition-colors"
+              onClick={() => {
+                marioSound.playPipe();
+                onExploreChallenges();
+              }}
+              className={`mario-btn px-3 py-1.5 text-[10px] font-arcade flex items-center space-x-1.5 self-start sm:self-auto ${
+                isLight ? 'bg-white text-slate-900 border-2 border-black hover:bg-slate-100' : isUnderground ? 'bg-[#050710] text-slate-200 border-2 border-[#2038ec] hover:bg-[#12182b]' : isCastle ? 'bg-[#080202] text-amber-200 border-2 border-[#d82800] hover:bg-[#1c0a0a]' : 'mario-btn-dark'
+              }`}
             >
-              <span>View All</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>ALL LEVELS</span>
+              <ArrowRight className="w-3 h-3 text-[#fcd800]" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {featuredChallenges.map((ch) => (
-              <div
-                key={ch.id}
-                onClick={() => onSelectChallenge(ch.id)}
-                className={`group p-5 rounded-xl transition-all cursor-pointer flex flex-col justify-between shadow-sm hover:shadow-md border ${
-                  theme === 'light'
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300'
-                    : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-1.5">
-                      <span
-                        className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
-                          getChallengeCategory(ch) === 'html'
-                            ? 'bg-orange-500/15 text-orange-500 border-orange-500/30'
-                            : getChallengeCategory(ch) === 'css'
-                            ? 'bg-sky-500/15 text-sky-500 border-sky-500/30'
-                            : 'bg-amber-500/15 text-amber-500 border-amber-500/30'
-                        }`}
-                      >
-                        {getChallengeCategory(ch).toUpperCase()}
-                      </span>
-                      <span
-                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${getDifficultyColor(
-                          ch.difficulty
-                        )}`}
-                      >
-                        {ch.difficulty === 'easy' ? 'Beginner' : ch.difficulty === 'medium' ? 'Intermediate' : 'Advanced'}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {featuredChallenges.map((ch, idx) => {
+              const badge = getDifficultyBadge(ch.difficulty);
+              const worldNum = `1-${idx + 1}`;
+
+              return (
+                <div
+                  key={ch.id}
+                  onClick={() => {
+                    marioSound.playJump();
+                    onSelectChallenge(ch.id);
+                  }}
+                  className={`${cardClass} cursor-pointer flex flex-col justify-between`}
+                >
+                  <div>
+                    {/* Level Header / Badge - Single Line Clean Spacing */}
+                    <div className={`flex items-center justify-between mb-3 border-b-2 ${cardDividerClass} pb-2 gap-1`}>
+                      <div className="flex items-center space-x-1.5 shrink-0">
+                        <span className="font-arcade text-[9px] bg-black text-[#fcd800] px-2 py-0.5 border border-black whitespace-nowrap">
+                          WORLD {worldNum}
+                        </span>
+                        <span className={`font-arcade text-[9px] px-1.5 py-0.5 border whitespace-nowrap ${badge.color}`}>
+                          {badge.icon} {ch.difficulty.toUpperCase()}
+                        </span>
+                      </div>
+                      <span className={`font-arcade text-[9px] whitespace-nowrap shrink-0 ${isLight ? 'text-slate-700' : isUnderground ? 'text-slate-400' : isCastle ? 'text-amber-300' : 'text-slate-400'}`}>
+                        ⏱ {ch.estimated_minutes}M
                       </span>
                     </div>
-                    <span
-                      className={`text-[10px] ${
-                        theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-                      }`}
-                    >
-                      ~{ch.estimated_minutes} mins
-                    </span>
+
+                    <h3 className={`font-pixel text-sm font-bold leading-snug mb-2 line-clamp-2 transition-colors ${cardTitleClass}`}>
+                      {ch.title}
+                    </h3>
+                    <p className={`font-pixel text-xs line-clamp-3 leading-relaxed ${cardDescClass}`}>
+                      {ch.description}
+                    </p>
                   </div>
 
-                  <h3
-                    className={`text-sm font-semibold transition-colors ${
-                      theme === 'light'
-                        ? 'text-slate-900 group-hover:text-emerald-600'
-                        : 'text-white group-hover:text-emerald-400'
-                    }`}
-                  >
-                    {ch.title}
-                  </h3>
-                  <p
-                    className={`text-xs mt-1 line-clamp-2 leading-relaxed ${
-                      theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-                    }`}
-                  >
-                    {ch.description}
-                  </p>
+                  {/* Level Card Bottom */}
+                  <div className={`mt-4 pt-3 border-t-2 ${cardDividerClass} flex items-center justify-between`}>
+                    <span className="font-arcade text-[9px] text-[#00a800] font-bold">
+                      {getModeLabel(ch.mode)}
+                    </span>
+                    <button className="mario-btn mario-btn-yellow px-2.5 py-1 text-[9px] font-arcade text-black flex items-center space-x-1">
+                      <span>PLAY</span>
+                      <Play className="w-2.5 h-2.5 fill-black" />
+                    </button>
+                  </div>
                 </div>
-
-                <div
-                  className={`mt-5 pt-3 border-t flex items-center justify-between text-xs ${
-                    theme === 'light' ? 'border-slate-100' : 'border-slate-800'
-                  }`}
-                >
-                  <span
-                    className={`text-[11px] ${
-                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-                    }`}
-                  >
-                    {getModeLabel(ch.mode)}
-                  </span>
-                  <span className="text-emerald-500 font-medium group-hover:translate-x-1 transition-transform flex items-center space-x-1">
-                    <span>Solve</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* ================= KEY CAPABILITIES ================= */}
-      <section
-        className={`px-6 py-16 max-w-6xl mx-auto border-t ${
-          theme === 'light' ? 'border-slate-200' : 'border-slate-800/60'
-        }`}
-      >
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <h2
-            className={`text-2xl font-bold ${
-              theme === 'light' ? 'text-slate-900' : 'text-white'
-            }`}
-          >
-            Designed For Frontend Mastery
-          </h2>
-          <p
-            className={`text-xs mt-2 leading-relaxed ${
-              theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-            }`}
-          >
-            Everything you need to level up your DOM manipulation, CSS layout skills, and JavaScript events in one cohesive workbench.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Feature 1 */}
-          <div
-            className={`p-5 rounded-xl border flex flex-col ${
-              theme === 'light'
-                ? 'bg-white border-slate-200 shadow-sm'
-                : 'bg-slate-900/40 border-slate-800/80'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mb-4">
-              <Code2 className="w-5 h-5" />
-            </div>
-            <h3
-              className={`text-sm font-bold mb-1.5 ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
+      {/* ================= MARIO POWER-UP CAPABILITIES ================= */}
+      <section className="px-4 py-12 max-w-5xl mx-auto">
+        <div className={`${powerUpsContainerClass} p-6`}>
+          <div className="text-center max-w-xl mx-auto mb-8">
+            <h2
+              className={`font-arcade text-base sm:text-lg tracking-wider ${
+                isLight
+                  ? 'text-[#b84418] drop-shadow-[1px_1px_0px_#fcb400]'
+                  : isCastle
+                  ? 'text-[#fcd800] drop-shadow-[2px_2px_0px_#d82800]'
+                  : isUnderground
+                  ? 'text-[#5c94fc] drop-shadow-[2px_2px_0px_#2038ec]'
+                  : 'text-[#fcd800] !text-[#fcd800] drop-shadow-[2px_2px_0px_#e52521]'
               }`}
             >
-              3-Panel Monaco IDE
-            </h3>
+              ★ COLLECT YOUR POWER-UPS ★
+            </h2>
             <p
-              className={`text-xs leading-relaxed ${
-                theme === 'light' ? 'text-slate-600' : 'text-slate-400'
+              className={`font-pixel text-xs sm:text-sm mt-2 ${
+                isLight
+                  ? 'text-slate-800 font-bold'
+                  : isCastle
+                  ? 'text-amber-200'
+                  : isUnderground
+                  ? 'text-slate-200'
+                  : 'text-white !text-white'
               }`}
             >
-              Full VS Code Monaco editor with multi-tab support for HTML, CSS, and JS with syntax formatting.
+              Every tool in Super RenderLab is designed to give you invincible coding superpowers.
             </p>
           </div>
 
-          {/* Feature 2 */}
-          <div
-            className={`p-5 rounded-xl border flex flex-col ${
-              theme === 'light'
-                ? 'bg-white border-slate-200 shadow-sm'
-                : 'bg-slate-900/40 border-slate-800/80'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 flex items-center justify-center mb-4">
-              <Monitor className="w-5 h-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Power-Up 1 */}
+            <div className={`${powerUpItemClass} p-4 flex flex-col items-center text-center transition-all`}>
+              <img src="/favicon.svg" alt="Super Monaco Mushroom" className="w-9 h-9 mb-2 [image-rendering:pixelated] drop-shadow-[2px_2px_0px_#000000]" />
+              <h3 className={`font-arcade text-[10px] font-bold mb-1 ${powerUpTitleClass}`}>
+                SUPER MONACO
+              </h3>
+              <p className={`font-pixel text-xs leading-relaxed ${powerUpDescClass}`}>
+                VS Code editor engine with HTML, CSS, and JS tabs, auto-completion, and syntax formatting.
+              </p>
             </div>
-            <h3
-              className={`text-sm font-bold mb-1.5 ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              Visual Comparison
-            </h3>
-            <p
-              className={`text-xs leading-relaxed ${
-                theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-              }`}
-            >
-              Compare your live solution side-by-side against the expected reference design to achieve pixel-perfection.
-            </p>
-          </div>
 
-          {/* Feature 3 */}
-          <div
-            className={`p-5 rounded-xl border flex flex-col ${
-              theme === 'light'
-                ? 'bg-white border-slate-200 shadow-sm'
-                : 'bg-slate-900/40 border-slate-800/80'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-5 h-5" />
+            {/* Power-Up 2 */}
+            <div className={`${powerUpItemClass} p-4 flex flex-col items-center text-center transition-all`}>
+              <div className="text-3xl mb-2">🌟</div>
+              <h3 className={`font-arcade text-[10px] font-bold mb-1 ${powerUpTitleClass}`}>
+                STAR SANDBOX
+              </h3>
+              <p className={`font-pixel text-xs leading-relaxed ${powerUpDescClass}`}>
+                Isolated 60fps real-time iframe preview with instant side-by-side reference verification.
+              </p>
             </div>
-            <h3
-              className={`text-sm font-bold mb-1.5 ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              Automated Tests
-            </h3>
-            <p
-              className={`text-xs leading-relaxed ${
-                theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-              }`}
-            >
-              Instant in-browser assertions verifying DOM structure, computed CSS rules, and user interaction handlers.
-            </p>
-          </div>
 
-          {/* Feature 4 */}
-          <div
-            className={`p-5 rounded-xl border flex flex-col ${
-              theme === 'light'
-                ? 'bg-white border-slate-200 shadow-sm'
-                : 'bg-slate-900/40 border-slate-800/80'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center mb-4">
-              <Cpu className="w-5 h-5" />
+            {/* Power-Up 3 */}
+            <div className={`${powerUpItemClass} p-4 flex flex-col items-center text-center transition-all`}>
+              <div className="text-3xl mb-2">🪙</div>
+              <h3 className={`font-arcade text-[10px] font-bold mb-1 ${powerUpTitleClass}`}>
+                COIN TESTER
+              </h3>
+              <p className={`font-pixel text-xs leading-relaxed ${powerUpDescClass}`}>
+                Instant browser test evaluation verifying elements, computed CSS styles, and event triggers.
+              </p>
             </div>
-            <h3
-              className={`text-sm font-bold mb-1.5 ${
-                theme === 'light' ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              Dual-LLM AI Tutor
-            </h3>
-            <p
-              className={`text-xs leading-relaxed ${
-                theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-              }`}
-            >
-              Offline with local Ollama or connected to Cloud APIs (Gemini, Groq, OpenAI) for socratic hints and challenge generation.
-            </p>
+
+            {/* Power-Up 4 */}
+            <div className={`${powerUpItemClass} p-4 flex flex-col items-center text-center transition-all`}>
+              <div className="text-3xl mb-2">❓</div>
+              <h3 className={`font-arcade text-[10px] font-bold mb-1 ${powerUpTitleClass}`}>
+                TOAD'S AI TUTOR
+              </h3>
+              <p className={`font-pixel text-xs leading-relaxed ${powerUpDescClass}`}>
+                Dual LLM guidance: local private Ollama or cloud models for hints without spoiling solutions.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ================= BOTTOM CTA ================= */}
-      <section className="px-6 py-12 max-w-4xl mx-auto mb-12 text-center">
-        <div
-          className={`p-8 rounded-2xl border shadow-xl flex flex-col items-center ${
-            theme === 'light'
-              ? 'bg-gradient-to-b from-slate-50 to-white border-slate-200 shadow-slate-200/50'
-              : 'bg-gradient-to-b from-slate-900/80 to-slate-900/40 border-slate-800'
-          }`}
-        >
-          <Zap className="w-8 h-8 text-amber-500 mb-3" />
-          <h2
-            className={`text-xl md:text-2xl font-bold ${
-              theme === 'light' ? 'text-slate-900' : 'text-white'
-            }`}
-          >
-            Ready to test your frontend skills?
+      {/* ================= WARP PIPE CALL TO ACTION ================= */}
+      <section className="px-4 py-8 max-w-3xl mx-auto mb-10 text-center">
+        <div className="bg-[#00a800] border-4 border-black p-6 shadow-[6px_6px_0px_#000] text-white flex flex-col items-center">
+          <div className="text-4xl mb-2">🚩</div>
+          <h2 className="font-arcade text-sm sm:text-base text-[#fcd800] drop-shadow-[2px_2px_0px_#000]">
+            COURSE CLEAR? GRAB THE FLAG!
           </h2>
-          <p
-            className={`text-xs md:text-sm mt-2 max-w-md ${
-              theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-            }`}
-          >
-            Jump directly into the workspace, solve real challenges, and track your progress.
+          <p className="font-pixel text-xs text-white/95 mt-2 max-w-md">
+            Enter the practice workspace now and prove you are a Master of the Web Frontend.
           </p>
           <button
-            onClick={onStartPracticing}
-            className="mt-6 flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 !text-slate-950 transition-colors shadow-lg shadow-emerald-500/20"
+            onClick={() => {
+              marioSound.playStageClear();
+              onStartPracticing();
+            }}
+            className="mt-5 mario-btn mario-btn-yellow px-6 py-3 text-xs font-arcade flex items-center space-x-2 text-black"
           >
-            <span className="!text-slate-950">Launch Practice Workspace</span>
-            <ArrowRight className="w-4 h-4 !text-slate-950" />
+            <span>START PRACTICE WORKSPACE</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </section>
 
-      {/* ================= FOOTER ================= */}
-      <footer
-        className={`px-6 py-8 border-t text-center text-xs ${
-          theme === 'light'
-            ? 'border-slate-200 text-slate-500'
-            : 'border-slate-800/60 text-slate-500'
-        }`}
-      >
-        <div className="flex items-center justify-center space-x-2 mb-2">
-          <Code2 className="w-4 h-4 text-emerald-500" />
-          <span
-            className={`font-semibold ${
-              theme === 'light' ? 'text-slate-700' : 'text-slate-300'
-            }`}
-          >
-            RenderLab
-          </span>
-          <span>—</span>
-          <span>Frontend Engineering Practice Suite</span>
+      {/* ================= MARIO GROUND FOOTER ================= */}
+      <footer className={`w-full py-4 px-4 text-center font-arcade text-[9px] ${footerClass}`}>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span>SUPER RENDERLAB</span>
+          <span>© 2026</span>
+          <span>•</span>
+          <span className="text-[#fcd800]">MADE WITH ❤️ FROM TEZOS NEXUS CIT</span>
         </div>
-        <p>Built for engineers mastering HTML, CSS, and modern JavaScript.</p>
       </footer>
     </div>
   );

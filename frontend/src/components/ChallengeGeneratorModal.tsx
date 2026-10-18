@@ -16,11 +16,13 @@ import {
 } from 'lucide-react';
 import { Challenge, Difficulty, ChallengeMode, LLMConfig } from '../types';
 import { api } from '../services/api';
+import { marioSound } from '../services/soundService';
 import {
   GENERATOR_BLUEPRINTS,
   MODE_EXPLANATIONS,
   GeneratorBlueprint,
 } from '../data/generatorBlueprints';
+import { useTheme } from '../context/ThemeContext';
 
 interface ChallengeGeneratorModalProps {
   isOpen: boolean;
@@ -87,6 +89,7 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
   }, [activeBlueprints, blueprintSearch]);
 
   const handleSelectCategory = (cat: 'html' | 'css' | 'javascript') => {
+    marioSound.playPipe();
     setSelectedCategory(cat);
     setBlueprintSearch('');
     const list = [...(GENERATOR_BLUEPRINTS[cat] || [])].sort(
@@ -99,56 +102,49 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
   };
 
   const handleSelectBlueprint = (bp: GeneratorBlueprint) => {
+    marioSound.playBlockBump();
     setSelectedBlueprintId(bp.id);
     setTopic(bp.heading);
     setDifficulty(bp.defaultDifficulty);
     setMode(bp.defaultMode);
-    setLearningObjective(bp.howToResolve);
+    setLearningObjective(bp.learningObjective);
   };
 
   const handleStartOllama = async () => {
     setStartingOllama(true);
     try {
-      await api.startOllamaDaemon();
-      for (let i = 0; i < 4; i++) {
-        await new Promise((r) => setTimeout(r, 1200));
-        const res = await api
-          .getLocalModels(llmConfig?.base_url)
-          .catch(() => ({ online: false }));
-        if (res.online) {
-          setOllamaOnline(true);
-          break;
-        }
+      const res = await api.startOllama();
+      if (res.status === 'success' || (res as any).success) {
+        setOllamaOnline(true);
       }
-    } catch (e: any) {
-      alert(
-        `Could not automatically start Ollama: ${e.message}\nPlease launch Ollama from your desktop or start menu.`
-      );
+    } catch {
+      setOllamaOnline(false);
     } finally {
       setStartingOllama(false);
     }
   };
 
-  if (!isOpen) return null;
-
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
 
+    marioSound.playJump();
     setLoading(true);
     setError(null);
-    setStepMsg('Synthesizing challenge prompt, starter code, and automated tests...');
+    setStepMsg('Contacting AI synthesis pipe...');
 
     try {
       const newChallenge = await api.generateChallenge({
-        topic,
-        category: selectedCategory,
+        topic: topic.trim(),
         difficulty,
         mode,
-        learning_objective: learningObjective || undefined,
-        custom_prompt: customPrompt || undefined,
+        category: selectedCategory,
+        blueprint_id: selectedBlueprintId,
+        learning_objective: learningObjective.trim(),
+        custom_prompt: customPrompt.trim() || undefined,
       });
 
+      marioSound.playStageClear();
       setStepMsg('Challenge validated and added to library!');
       setTimeout(() => {
         onChallengeGenerated(newChallenge);
@@ -175,45 +171,79 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
   const cssCount = GENERATOR_BLUEPRINTS.css?.length || 0;
   const jsCount = GENERATOR_BLUEPRINTS.javascript?.length || 0;
 
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#111726] border border-slate-750 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div
+        className={`w-full max-w-2xl border-4 shadow-[8px_8px_0px_#000] flex flex-col font-pixel ${
+          isLight ? 'bg-white border-black text-slate-900' : 'bg-[#000000] border-white text-white'
+        }`}
+      >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+        <div className="px-5 py-3.5 border-b-2 border-black flex items-center justify-between bg-[#e52521] text-white">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-              <Sparkles className="w-5 h-5 text-amber-300" />
+            <div className="w-8 h-8 mario-question-block flex items-center justify-center text-black font-arcade font-black text-xs shrink-0">
+              ?
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Generate Custom Practice Challenge</h2>
-              <p className="text-xs text-slate-400">
-                Browse all 311 curriculum blueprints across HTML, CSS, &amp; JS to generate a custom problem
+              <h2 className="font-arcade text-xs text-[#fcd800] !text-[#fcd800] drop-shadow-[1px_1px_0px_#000]">
+                GENERATE CUSTOM PRACTICE CHALLENGE
+              </h2>
+              <p className="font-pixel text-[11px] text-white/90">
+                Browse 300+ blueprints across HTML, CSS, &amp; JS to generate custom levels
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            onClick={() => {
+              marioSound.playBlockBump();
+              onClose();
+            }}
+            className="mario-btn mario-btn-dark px-2 py-0.5 text-xs font-arcade"
           >
-            <X className="w-5 h-5" />
+            ✕
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleGenerate} className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+        <form onSubmit={handleGenerate} className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
           {/* Active LLM Provider info banner */}
-          <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs">
-            <div className="flex items-center space-x-2 text-slate-300">
+          <div
+            className={`p-2.5 border-2 flex items-center justify-between text-xs ${
+              isLight ? 'bg-slate-100 border-black text-slate-900' : 'bg-slate-900 border-slate-700 text-slate-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
               {isCloud ? (
-                <Key className="w-4 h-4 text-amber-400" />
+                <Key className="w-4 h-4 text-amber-500" />
               ) : (
-                <Cpu className="w-4 h-4 text-emerald-400" />
+                <Cpu className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-[#00d800]'}`} />
               )}
-              <span>Active Model:</span>
-              <span className="font-mono text-white font-semibold">
+              <span
+                className={`font-arcade text-[9px] ${
+                  isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                MODEL:
+              </span>
+              <span
+                className={`font-mono font-semibold ${
+                  isLight ? 'text-slate-950 font-bold' : 'text-white'
+                }`}
+              >
                 {llmConfig?.model || 'deepseek-coder:6.7b'}
               </span>
-              <span className="text-slate-500 capitalize">({llmConfig?.provider || 'ollama'})</span>
+              <span
+                className={`font-arcade text-[9px] capitalize ${
+                  isLight ? 'text-slate-600 font-bold' : 'text-slate-400'
+                }`}
+              >
+                ({llmConfig?.provider || 'ollama'})
+              </span>
             </div>
 
             {!isCloud && ollamaOnline === false && (
@@ -221,98 +251,122 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
                 type="button"
                 onClick={handleStartOllama}
                 disabled={startingOllama}
-                className="flex items-center space-x-1 px-2.5 py-1 rounded bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-300 text-[11px] font-semibold transition-colors disabled:opacity-50"
+                className="mario-btn mario-btn-yellow px-2 py-0.5 text-[9px] font-arcade text-black"
               >
                 {startingOllama ? <Loader2 className="w-3 h-3 animate-spin" /> : <span>▶</span>}
-                <span>{startingOllama ? 'Starting...' : 'Start Ollama'}</span>
+                <span>START OLLAMA</span>
               </button>
             )}
           </div>
 
           {!isCloud && ollamaOnline === false && (
-            <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="p-2.5 bg-red-100 border-2 border-red-600 text-red-900 text-xs flex items-start space-x-2 font-bold">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <span className="font-semibold">Local Ollama is offline.</span> RenderLab will use
-                its built-in blueprint synthesis to produce a verified challenge immediately, or launch Ollama from your desktop.
+                <span className="font-arcade text-[9px] text-[#b84418]">LOCAL OLLAMA OFFLINE: </span>
+                RenderLab will use fallback blueprint synthesis or launch Ollama from desktop.
               </div>
             </div>
           )}
 
           {/* ================= STEP 1: CATEGORY SELECTION TABS ================= */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              1. Select Category ({htmlCount + cssCount + jsCount} Blueprints Available)
+            <label
+              className={`block font-arcade text-[10px] mb-2 ${
+                isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+              }`}
+            >
+              1. SELECT CATEGORY ({htmlCount + cssCount + jsCount} BLUEPRINTS)
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleSelectCategory('html')}
-                className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-2 transition-all ${
+                className={`mario-btn py-2 px-3 text-[10px] font-arcade flex items-center justify-center space-x-1.5 ${
                   selectedCategory === 'html'
-                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 shadow-sm shadow-rose-950'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-850'
+                    ? 'mario-btn-red text-white'
+                    : isLight
+                    ? 'bg-slate-100 border-2 border-black text-slate-700 hover:text-black hover:bg-slate-200'
+                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
                 }`}
               >
-                <Globe className="w-4 h-4 text-rose-400" />
-                <span>HTML ({htmlCount})</span>
+                <span>🍄 HTML ({htmlCount})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectCategory('css')}
-                className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-2 transition-all ${
+                className={`mario-btn py-2 px-3 text-[10px] font-arcade flex items-center justify-center space-x-1.5 ${
                   selectedCategory === 'css'
-                    ? 'bg-sky-500/20 border-sky-500/40 text-sky-300 shadow-sm shadow-sky-950'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-850'
+                    ? 'mario-btn-blue text-white'
+                    : isLight
+                    ? 'bg-slate-100 border-2 border-black text-slate-700 hover:text-black hover:bg-slate-200'
+                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
                 }`}
               >
-                <Palette className="w-4 h-4 text-sky-400" />
-                <span>CSS ({cssCount})</span>
+                <span>🎨 CSS ({cssCount})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectCategory('javascript')}
-                className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center space-x-2 transition-all ${
+                className={`mario-btn py-2 px-3 text-[10px] font-arcade flex items-center justify-center space-x-1.5 ${
                   selectedCategory === 'javascript'
-                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-sm shadow-amber-950'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-850'
+                    ? 'mario-btn-yellow text-black'
+                    : isLight
+                    ? 'bg-slate-100 border-2 border-black text-slate-700 hover:text-black hover:bg-slate-200'
+                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
                 }`}
               >
-                <Zap className="w-4 h-4 text-amber-400" />
-                <span>JavaScript ({jsCount})</span>
+                <span>⚡ JS ({jsCount})</span>
               </button>
             </div>
           </div>
 
           {/* ================= STEP 2: BLUEPRINT RECIPES MAP WITH SEARCH ================= */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
-                <span>2. Select Problem Statement Blueprint</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                className={`font-arcade text-[10px] ${
+                  isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                2. SELECT PROBLEM STATEMENT BLUEPRINT
               </label>
-              <span className="text-[10px] text-slate-400">
-                {filteredBlueprints.length} of {activeBlueprints.length} showing
+              <span
+                className={`font-arcade text-[9px] ${
+                  isLight ? 'text-slate-700 font-bold' : 'text-slate-400'
+                }`}
+              >
+                {filteredBlueprints.length}/{activeBlueprints.length}
               </span>
             </div>
 
             {/* Quick search filter for the 311 blueprints */}
             <div className="relative mb-2">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+              <Search
+                className={`w-3.5 h-3.5 absolute left-3 top-2.5 ${
+                  isLight ? 'text-slate-500' : 'text-slate-400'
+                }`}
+              />
               <input
                 type="text"
                 value={blueprintSearch}
                 onChange={(e) => setBlueprintSearch(e.target.value)}
                 placeholder={`Search ${activeBlueprints.length} ${selectedCategory.toUpperCase()} blueprints...`}
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className={`w-full border-2 pl-8 pr-3 py-1.5 text-xs focus:outline-none ${
+                  isLight
+                    ? 'bg-white border-black text-slate-900 font-bold placeholder-slate-400 focus:border-[#0050d0]'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-[#fcd800]'
+                }`}
               />
               {blueprintSearch && (
                 <button
                   type="button"
                   onClick={() => setBlueprintSearch('')}
-                  className="absolute right-2.5 top-2 text-slate-400 hover:text-white text-xs"
+                  className={`absolute right-2.5 top-2 text-xs font-arcade ${
+                    isLight ? 'text-slate-600 hover:text-black' : 'text-slate-400 hover:text-white'
+                  }`}
                 >
                   &times;
                 </button>
@@ -320,10 +374,16 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
             </div>
 
             {/* Blueprints rendered as a sequential list based on challenge number */}
-            <div className="flex flex-col space-y-1.5 max-h-56 overflow-y-auto pr-1.5 scrollbar-thin">
+            <div className="flex flex-col space-y-1.5 max-h-52 overflow-y-auto pr-1">
               {filteredBlueprints.length === 0 ? (
-                <div className="text-center py-8 text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800/60">
-                  No problem blueprints found matching &ldquo;{blueprintSearch}&rdquo;
+                <div
+                  className={`text-center py-6 text-xs border-2 border-dashed font-arcade ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-400 text-slate-700'
+                      : 'bg-slate-900 border-slate-700 text-slate-400'
+                  }`}
+                >
+                  NO BLUEPRINTS MATCH &ldquo;{blueprintSearch}&rdquo;
                 </div>
               ) : (
                 filteredBlueprints.map((bp) => {
@@ -336,19 +396,25 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
                     <div
                       key={bp.id}
                       onClick={() => handleSelectBlueprint(bp)}
-                      className={`group p-2.5 px-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                      className={`p-2.5 border-2 text-left cursor-pointer transition-all flex items-center justify-between gap-3 ${
                         isSelected
-                          ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm shadow-indigo-950/40 ring-1 ring-indigo-500/40'
-                          : 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-850'
+                          ? isLight
+                            ? 'bg-amber-100/90 border-black shadow-[2px_2px_0px_#000]'
+                            : 'bg-[#fc9838]/20 border-[#fc9838] shadow-[2px_2px_0px_#000]'
+                          : isLight
+                          ? 'bg-slate-50 border-slate-300 hover:border-black'
+                          : 'bg-slate-900 border-slate-700 hover:border-white'
                       }`}
                     >
                       {/* Left: Number Badge + Title & Description */}
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
                         <span
-                          className={`shrink-0 inline-flex items-center justify-center min-w-[3.25rem] px-2 py-1 rounded-md font-mono text-xs font-bold border transition-colors ${
+                          className={`shrink-0 font-arcade text-[9px] px-1.5 py-0.5 border ${
                             isSelected
-                              ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                              : 'bg-slate-800/90 text-slate-300 border-slate-700/60 group-hover:text-indigo-300 group-hover:border-slate-600'
+                              ? 'bg-[#fc9838] text-black border-black'
+                              : isLight
+                              ? 'bg-slate-200 text-slate-800 border-slate-400 font-bold'
+                              : 'bg-black text-[#fcd800] border-slate-700'
                           }`}
                         >
                           {numStr}
@@ -356,50 +422,50 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
 
                         <div className="min-w-0 flex-1">
                           <h4
-                            className={`text-xs font-semibold leading-tight truncate transition-colors ${
-                              isSelected
-                                ? 'text-white'
-                                : 'text-slate-200 group-hover:text-white'
+                            className={`text-xs font-semibold leading-tight truncate ${
+                              isLight ? 'text-slate-950 font-bold' : 'text-white'
                             }`}
                           >
                             {titleStr}
                           </h4>
-                          <p className="text-[11px] text-slate-400 truncate mt-0.5 leading-snug">
+                          <p
+                            className={`text-[11px] truncate mt-0.5 ${
+                              isLight ? 'text-slate-600 font-semibold' : 'text-slate-400'
+                            }`}
+                          >
                             {bp.description}
                           </p>
                         </div>
                       </div>
 
-                      {/* Right: Badges & Selection Indicator */}
+                      {/* Right: Badges */}
                       <div className="flex items-center gap-2 shrink-0">
                         <span
-                          className={`hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          className={`px-1.5 py-0.5 font-arcade text-[8px] border ${
                             bp.defaultDifficulty === 'easy'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              ? 'bg-[#00a800] text-white border-black'
                               : bp.defaultDifficulty === 'medium'
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              ? 'bg-[#fc9838] text-black border-black'
+                              : 'bg-[#e52521] text-white border-black'
                           }`}
                         >
                           {bp.defaultDifficulty === 'easy'
-                            ? 'Beginner'
+                            ? 'WORLD 1'
                             : bp.defaultDifficulty === 'medium'
-                            ? 'Intermediate'
-                            : 'Advanced'}
-                        </span>
-
-                        <span className="hidden md:inline-block px-2 py-0.5 rounded text-[10px] bg-slate-800 text-indigo-300 border border-slate-700/50 font-medium">
-                          {MODE_EXPLANATIONS[bp.defaultMode]?.label || bp.defaultMode}
+                            ? 'WORLD 2'
+                            : 'BOWSER'}
                         </span>
 
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                          className={`w-4 h-4 flex items-center justify-center border ${
                             isSelected
-                              ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/50'
-                              : 'border border-slate-700 text-transparent group-hover:border-slate-500'
+                              ? 'bg-[#00a800] text-white border-black'
+                              : isLight
+                              ? 'border-slate-400 text-transparent'
+                              : 'border-slate-600 text-transparent'
                           }`}
                         >
-                          <Check className="w-3 h-3 stroke-[2.5]" />
+                          <Check className="w-3 h-3 stroke-[3]" />
                         </div>
                       </div>
                     </div>
@@ -410,10 +476,14 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
           </div>
 
           {/* ================= STEP 3: TOPIC & CUSTOMIZATION ================= */}
-          <div className="space-y-3 pt-2 border-t border-slate-800">
+          <div className="space-y-3 pt-2 border-t-2 border-black">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Problem Statement Title / Topic
+              <label
+                className={`block font-arcade text-[10px] mb-1 ${
+                  isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                PROBLEM STATEMENT TITLE / TOPIC
               </label>
               <input
                 type="text"
@@ -421,132 +491,161 @@ export const ChallengeGeneratorModal: React.FC<ChallengeGeneratorModalProps> = (
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. #1. Semantic Header & Nav Landmark"
-                className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className={`w-full border-2 px-3 py-1.5 text-xs focus:outline-none ${
+                  isLight
+                    ? 'bg-white border-black text-slate-900 font-bold placeholder-slate-400 focus:border-[#0050d0]'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-[#fcd800]'
+                }`}
               />
             </div>
 
             {/* Difficulty & Mode Selector */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Difficulty Level
+                <label
+                  className={`block font-arcade text-[10px] mb-1 ${
+                    isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                  }`}
+                >
+                  DIFFICULTY
                 </label>
                 <select
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-                  className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className={`w-full border-2 px-2 py-1.5 text-xs font-pixel focus:outline-none ${
+                    isLight
+                      ? 'bg-white border-black text-slate-900 font-bold focus:border-[#0050d0]'
+                      : 'bg-slate-950 border-slate-700 text-white focus:border-[#fcd800]'
+                  }`}
                 >
-                  <option value="easy">Beginner (10-15 mins)</option>
-                  <option value="medium">Intermediate (15-25 mins)</option>
-                  <option value="hard">Advanced (30+ mins)</option>
+                  <option value="easy">WORLD 1 (Beginner, 10-15m)</option>
+                  <option value="medium">WORLD 2 (Intermediate, 15-25m)</option>
+                  <option value="hard">BOWSER (Advanced, 30+m)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Challenge Mode
+                <label
+                  className={`block font-arcade text-[10px] mb-1 ${
+                    isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                  }`}
+                >
+                  CHALLENGE MODE
                 </label>
                 <select
                   value={mode}
                   onChange={(e) => setMode(e.target.value as ChallengeMode)}
-                  className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className={`w-full border-2 px-2 py-1.5 text-xs font-pixel focus:outline-none ${
+                    isLight
+                      ? 'bg-white border-black text-slate-900 font-bold focus:border-[#0050d0]'
+                      : 'bg-slate-950 border-slate-700 text-white focus:border-[#fcd800]'
+                  }`}
                 >
                   <option value="fill_blanks">Fill in the Blanks</option>
-                  <option value="build_component">Build Component from Scratch</option>
-                  <option value="fix_broken">Diagnose &amp; Fix Broken Code</option>
+                  <option value="build_component">Build Component</option>
+                  <option value="fix_broken">Diagnose &amp; Fix Bugs</option>
                   <option value="recreate_page">Recreate Target Design</option>
                 </select>
               </div>
             </div>
 
-            {/* Mode Description Alert Box (For user and passed to LLM) */}
-            <div className="p-3 rounded-lg bg-indigo-950/30 border border-indigo-500/25 space-y-1 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-indigo-300 text-[11px] uppercase tracking-wide">
-                  Mode: {activeModeInfo.label}
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">
-                  {activeModeInfo.badge}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                {activeModeInfo.description}
-              </p>
-            </div>
-
-            {/* How Problem Statement Should Be Resolved / Objective */}
+            {/* Learning Objective */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                How Problem Statement Should Be Resolved (Learning Objective)
+              <label
+                className={`block font-arcade text-[10px] mb-1 ${
+                  isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                LEARNING OBJECTIVE
               </label>
               <textarea
                 rows={2}
                 value={learningObjective}
                 onChange={(e) => setLearningObjective(e.target.value)}
-                placeholder="e.g. Specify which semantic tags, CSS properties, or DOM methods the user must implement"
-                className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"
+                className={`w-full border-2 px-3 py-1.5 text-xs focus:outline-none resize-none leading-relaxed ${
+                  isLight
+                    ? 'bg-white border-black text-slate-900 font-bold placeholder-slate-400 focus:border-[#0050d0]'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-[#fcd800]'
+                }`}
               />
             </div>
 
             {/* Custom Extra Instructions */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Additional Instructions or Constraints{' '}
-                <span className="text-slate-500 font-normal">(Optional)</span>
+              <label
+                className={`block font-arcade text-[10px] mb-1 ${
+                  isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                ADDITIONAL CONSTRAINTS (OPTIONAL)
               </label>
               <input
                 type="text"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="e.g. Include mobile responsive tests or dark theme styling"
-                className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className={`w-full border-2 px-3 py-1.5 text-xs focus:outline-none ${
+                  isLight
+                    ? 'bg-white border-black text-slate-900 font-bold placeholder-slate-400 focus:border-[#0050d0]'
+                    : 'bg-slate-950 border-slate-700 text-white placeholder-slate-500 focus:border-[#fcd800]'
+                }`}
               />
             </div>
           </div>
 
           {/* Feedback messages */}
           {error && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold">Generation Error: </span>
-                {error}
-              </div>
+            <div className="p-3 bg-red-100 border-2 border-red-600 text-red-900 text-xs font-bold">
+              <span className="font-arcade text-[9px] text-[#b84418] block mb-0.5">GENERATION ERROR:</span>
+              {error}
             </div>
           )}
 
           {stepMsg && (
-            <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs flex items-center space-x-2">
+            <div
+              className={`p-2.5 border-2 font-arcade text-[10px] flex items-center space-x-2 ${
+                isLight ? 'bg-emerald-50 border-[#00a800] text-emerald-950 font-bold' : 'bg-black border-[#00d800] text-[#00d800]'
+              }`}
+            >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5" />
               )}
               <span>{stepMsg}</span>
             </div>
           )}
 
           {/* Modal Actions */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end space-x-2">
+          <div
+            className={`pt-3 border-t-2 flex items-center justify-end space-x-2 ${
+              isLight ? 'border-black' : 'border-white'
+            }`}
+          >
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                marioSound.playBlockBump();
+                onClose();
+              }}
               disabled={loading}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className={`mario-btn px-3 py-1.5 text-[10px] font-arcade ${
+                isLight ? 'bg-slate-200 text-slate-800 border-2 border-black hover:bg-slate-300' : 'mario-btn-dark'
+              }`}
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={loading || !topic.trim()}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50"
+              className="mario-btn mario-btn-yellow px-4 py-1.5 text-[10px] font-arcade text-black flex items-center space-x-1.5 disabled:opacity-50"
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Sparkles className="w-4 h-4 text-amber-300" />
+                <Sparkles className="w-3.5 h-3.5" />
               )}
-              <span>{loading ? 'Synthesizing...' : 'Generate Challenge'}</span>
+              <span>{loading ? 'SYNTHESIZING...' : 'GENERATE LEVEL ▶'}</span>
             </button>
           </div>
         </form>

@@ -88,6 +88,7 @@ export interface UserProgress {
   completion_rate: number;
   total_attempts: number;
   accuracy_percent: number;
+  streak?: number;
   difficulty: {
     easy: { solved: number; total: number };
     medium: { solved: number; total: number };

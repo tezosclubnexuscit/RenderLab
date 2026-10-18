@@ -6,11 +6,11 @@ import {
   Loader2,
   Send,
   Sparkles,
-  HelpCircle,
   Clock,
-  Check,
 } from 'lucide-react';
-import { TestCase, SubmissionResponse, SubmissionResultItem } from '../types';
+import { TestCase, SubmissionResponse } from '../types';
+import { marioSound } from '../services/soundService';
+import { useTheme } from '../context/ThemeContext';
 
 interface TestResultsProps {
   tests: TestCase[];
@@ -27,18 +27,56 @@ export const TestResults: React.FC<TestResultsProps> = ({
   onSubmit,
   onAskAIHint,
 }) => {
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+  const isUnderground = theme === 'mario-underground';
+  const isCastle = theme === 'mario-castle';
+  const isOverworld = theme === 'mario-overworld';
+
+  // Panel background: per-theme
+  const panelBg = isLight
+    ? 'bg-white'
+    : isUnderground
+    ? 'bg-[#0b0f20]'
+    : isCastle
+    ? 'bg-[#120404]'
+    : 'bg-[#111726]'; // dark & overworld
+
+  // Header bar bg
+  const headerBg = isLight
+    ? 'bg-slate-100 border-b-2 border-black'
+    : isUnderground
+    ? 'bg-[#050710] border-b-2 border-[#2038ec]'
+    : isCastle
+    ? 'bg-[#080202] border-b-2 border-[#d82800]'
+    : 'bg-black border-b-2 border-black';
+
+  // Test card base (no result yet)
+  const cardBase = isLight
+    ? 'bg-white border-slate-300 text-slate-900'
+    : isUnderground
+    ? 'bg-[#12182b] border-slate-700 text-slate-200'
+    : isCastle
+    ? 'bg-[#1c0a0a] border-red-900 text-amber-100'
+    : 'bg-slate-900 border-slate-700 text-slate-200';
+
   const triggerConfetti = () => {
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 100,
+      spread: 80,
       origin: { y: 0.6 },
-      colors: ['#22c55e', '#38bdf8', '#fbbf24', '#a855f7'],
+      colors: ['#e52521', '#00a800', '#fcd800', '#5c94fc'],
     });
   };
 
   React.useEffect(() => {
-    if (lastSubmission && lastSubmission.status === 'passed') {
-      triggerConfetti();
+    if (lastSubmission) {
+      if (lastSubmission.status === 'passed') {
+        marioSound.playStageClear();
+        triggerConfetti();
+      } else {
+        marioSound.playBlockBump();
+      }
     }
   }, [lastSubmission]);
 
@@ -46,66 +84,77 @@ export const TestResults: React.FC<TestResultsProps> = ({
     lastSubmission?.results.filter((r) => !r.passed).map((r) => r.description) || [];
 
   return (
-    <div className="flex flex-col h-full bg-[#111726]">
+    <div className={`flex flex-col h-full ${panelBg}`}>
       {/* Header & Submit Button */}
-      <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+      <div className={`p-3 flex items-center justify-between ${headerBg}`}>
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-bold text-white uppercase tracking-wider">
-            Automated Checks
+          <span
+            className={`text-[11px] font-arcade tracking-wide ${
+              isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+            }`}
+          >
+            TEST CHECKS
           </span>
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-            {tests.length} tests
+          <span
+            className={`text-[10px] font-arcade px-1.5 py-0.5 border ${
+              isLight
+                ? 'bg-white border-slate-300 text-slate-800 font-bold'
+                : isUnderground
+                ? 'bg-[#12182b] border-[#2038ec] text-[#5c94fc]'
+                : isCastle
+                ? 'bg-[#1c0a0a] border-[#d82800] text-amber-300'
+                : 'bg-slate-800 text-white border-slate-600'
+            }`}
+          >
+            {tests.length}
           </span>
         </div>
 
         <button
-          onClick={onSubmit}
+          onClick={() => {
+            marioSound.playJump();
+            onSubmit();
+          }}
           disabled={submitting}
-          className="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+          className="mario-btn mario-btn-green px-3 py-1.5 text-[10px] font-arcade flex items-center space-x-1.5 disabled:opacity-50"
         >
           {submitting ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <Loader2 className="w-3 h-3 animate-spin" />
           ) : (
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-3 h-3" />
           )}
-          <span>{submitting ? 'Running checks...' : 'Submit Solution'}</span>
+          <span>{submitting ? 'CHECKING...' : 'RUN & SUBMIT'}</span>
         </button>
       </div>
 
       {/* Results Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {/* Status Banner */}
         {lastSubmission && (
           <div
-            className={`p-3.5 rounded-xl border flex items-center justify-between ${
+            className={`p-3 border-2 border-black shadow-[3px_3px_0px_#000] flex items-center justify-between ${
               lastSubmission.status === 'passed'
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                ? 'bg-[#00a800] text-white'
+                : 'bg-[#e52521] text-white'
             }`}
           >
-            <div className="flex items-center space-x-3">
-              {lastSubmission.status === 'passed' ? (
-                <div className="p-1.5 rounded-lg bg-emerald-500/20">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                </div>
-              ) : (
-                <div className="p-1.5 rounded-lg bg-rose-500/20">
-                  <XCircle className="w-5 h-5 text-rose-400" />
-                </div>
-              )}
+            <div className="flex items-center space-x-2.5">
+              <div className="text-xl">
+                {lastSubmission.status === 'passed' ? '⭐' : '💀'}
+              </div>
               <div>
-                <div className="font-bold text-sm">
+                <div className="font-arcade text-xs">
                   {lastSubmission.status === 'passed'
-                    ? 'Accepted! All checks passed 🎉'
-                    : `${lastSubmission.passed_count}/${lastSubmission.total_count} Checks Passed`}
+                    ? 'COURSE CLEAR! ALL PASSED'
+                    : `FAILED: ${lastSubmission.passed_count}/${lastSubmission.total_count} PASSED`}
                 </div>
-                <div className="text-[11px] opacity-75 flex items-center space-x-2">
+                <div className="text-[10px] font-pixel opacity-90 flex items-center space-x-2 mt-0.5">
                   <span className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
                     <span>{lastSubmission.execution_time_ms} ms</span>
                   </span>
                   <span>•</span>
-                  <span>Attempt ID: #{lastSubmission.attempt_id}</span>
+                  <span>TRY #{lastSubmission.attempt_id}</span>
                 </div>
               </div>
             </div>
@@ -113,11 +162,13 @@ export const TestResults: React.FC<TestResultsProps> = ({
             {/* AI Hint Button on Failure */}
             {lastSubmission.status !== 'passed' && (
               <button
-                onClick={() => onAskAIHint(failedTestNames)}
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 transition-colors"
+                onClick={() => {
+                  marioSound.playBlockBump();
+                  onAskAIHint(failedTestNames);
+                }}
+                className="mario-btn mario-btn-yellow px-2 py-1 text-[9px] font-arcade text-black"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Ask AI Tutor</span>
+                <span>HINT ?</span>
               </button>
             )}
           </div>
@@ -131,43 +182,92 @@ export const TestResults: React.FC<TestResultsProps> = ({
             return (
               <div
                 key={test.test_id}
-                className={`p-3 rounded-lg border text-xs transition-colors ${
+                className={`p-3 border-2 text-xs ${
                   result
                     ? result.passed
-                      ? 'bg-slate-900/50 border-emerald-500/20'
-                      : 'bg-slate-900/80 border-rose-500/30'
-                    : 'bg-slate-900/40 border-slate-800'
+                      ? isLight
+                        ? 'bg-emerald-50 border-emerald-500 shadow-[2px_2px_0px_#000]'
+                        : 'bg-emerald-950/40 border-emerald-500/40 shadow-[2px_2px_0px_#000]'
+                      : isLight
+                      ? 'bg-rose-50 border-rose-500 shadow-[2px_2px_0px_#000]'
+                      : 'bg-rose-950/40 border-rose-500/40 shadow-[2px_2px_0px_#000]'
+                    : cardBase.replace('border-', 'border-2 border-').includes('border-2 border-')
+                    ? `p-3 border-2 ${cardBase}`
+                    : `border-2 ${cardBase}`
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start space-x-2.5">
-                    {/* Status icon */}
+                  <div className="flex items-start space-x-2">
                     <div className="mt-0.5">
                       {result ? (
                         result.passed ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-[#00d800] shrink-0" />
                         ) : (
-                          <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                          <XCircle className="w-4 h-4 text-[#ff4444] shrink-0" />
                         )
                       ) : (
-                        <div className="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[10px] text-slate-500">
+                        <div
+                          className={`w-4 h-4 rounded-none border font-arcade flex items-center justify-center text-[9px] ${
+                            isLight
+                              ? 'border-slate-400 text-slate-600 font-bold'
+                              : isUnderground
+                              ? 'border-[#2038ec] text-[#5c94fc]'
+                              : isCastle
+                              ? 'border-[#d82800] text-amber-400'
+                              : 'border-slate-500 text-slate-400'
+                          }`}
+                        >
                           {index + 1}
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <div className="font-semibold text-slate-200">
+                      <div
+                        className={`font-pixel font-bold text-sm ${
+                          result
+                            ? result.passed
+                              ? isLight
+                                ? 'text-emerald-800'
+                                : 'text-emerald-300'
+                              : isLight
+                              ? 'text-rose-800'
+                              : 'text-rose-300'
+                            : isLight
+                            ? 'text-slate-900 font-semibold'
+                            : isUnderground
+                            ? 'text-slate-100'
+                            : isCastle
+                            ? 'text-amber-100'
+                            : 'text-slate-100'
+                        }`}
+                      >
                         {test.description}
                       </div>
-                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                      <div
+                        className={`text-[10px] font-mono mt-0.5 ${
+                          isLight
+                            ? 'text-slate-600'
+                            : isUnderground
+                            ? 'text-slate-400'
+                            : isCastle
+                            ? 'text-orange-400/70'
+                            : 'text-slate-400'
+                        }`}
+                      >
                         Type: {test.test_type}
                         {test.selector ? ` • Selector: ${test.selector}` : ''}
                       </div>
 
                       {/* Diagnostic error message if failed */}
                       {result && !result.passed && result.message && (
-                        <div className="mt-2 p-2 rounded bg-rose-950/40 border border-rose-900/50 text-rose-300 font-mono text-[11px]">
+                        <div
+                          className={`mt-2 p-2 border font-mono text-[11px] ${
+                            isLight
+                              ? 'bg-red-50 border-red-400 text-red-800'
+                              : 'bg-black border-rose-600 text-rose-300'
+                          }`}
+                        >
                           {result.message}
                         </div>
                       )}
@@ -176,8 +276,8 @@ export const TestResults: React.FC<TestResultsProps> = ({
 
                   {/* Solved checkmark */}
                   {result?.passed && (
-                    <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                      Passed
+                    <span className="font-arcade text-[8px] uppercase text-[#00d800] bg-black px-1.5 py-0.5 border border-[#00d800]">
+                      PASS
                     </span>
                   )}
                 </div>

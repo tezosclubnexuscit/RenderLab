@@ -14,10 +14,11 @@ import {
   HardDrive,
   Play,
   RefreshCw,
-  Sparkles,
 } from 'lucide-react';
 import { LLMConfig, LLMProvider, ConnectionTestResult } from '../types';
 import { api } from '../services/api';
+import { marioSound } from '../services/soundService';
+import { useTheme } from '../context/ThemeContext';
 
 interface LLMSettingsModalProps {
   isOpen: boolean;
@@ -103,49 +104,52 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
 
   const handleStartOllama = async () => {
     setStartingOllama(true);
+    marioSound.playJump();
     try {
-      await api.startOllamaDaemon();
-      // Poll a couple of times for Ollama to spin up
-      for (let i = 0; i < 4; i++) {
-        await new Promise((r) => setTimeout(r, 1200));
-        const res = await api.getLocalModels(baseUrl).catch(() => ({ online: false }));
-        if (res.online) {
-          setOllamaOnline(true);
-          refreshLocalModels();
-          break;
-        }
+      const res = await api.startOllama();
+      if (res.status === 'success' || (res as any).success) {
+        setOllamaOnline(true);
+        marioSound.play1Up();
+        refreshLocalModels();
       }
-    } catch (e: any) {
-      alert(`Could not automatically start Ollama: ${e.message}\nPlease open Ollama from your Start menu or run 'ollama serve' in terminal.`);
+    } catch {
+      setOllamaOnline(false);
     } finally {
       setStartingOllama(false);
     }
   };
 
-  const handlePullModel = async (targetModel: string) => {
-    setPullingModel(targetModel);
-    setPullProgress({ status: 'Starting download request...' });
+  const handlePullModel = async (modelToPull: string) => {
+    setPullingModel(modelToPull);
+    setPullProgress({ status: 'Starting download pipe...' });
     setPullError(null);
     setPullSuccess(null);
+    marioSound.playPipe();
 
     try {
-      await api.pullModel(targetModel, baseUrl, (p) => {
-        setPullProgress(p);
+      await api.pullLocalModel(modelToPull, baseUrl, (prog: any) => {
+        setPullProgress({
+          status: prog.status,
+          percent: prog.percent,
+          completed_mb: prog.completed_mb,
+          total_mb: prog.total_mb,
+        });
       });
 
-      setPullSuccess(`Model '${targetModel}' successfully installed!`);
-      setModel(targetModel);
-      await refreshLocalModels();
+      marioSound.playStageClear();
+      setPullSuccess(`Successfully installed ${modelToPull}!`);
+      setModel(modelToPull);
+      refreshLocalModels();
     } catch (err: any) {
-      setPullError(err.message || `Failed to install ${targetModel}`);
+      marioSound.playBlockBump();
+      setPullError(err.message || 'Failed to download model');
     } finally {
       setPullingModel(null);
     }
   };
 
-  if (!isOpen) return null;
-
   const handleModeChange = (newMode: 'local' | 'cloud') => {
+    marioSound.playPipe();
     setModeType(newMode);
     setTestResult(null);
     if (newMode === 'local') {
@@ -154,47 +158,55 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
       setModel('deepseek-coder:6.7b');
     } else {
       setProvider('gemini');
-      setBaseUrl('https://generativelanguage.googleapis.com');
       setModel('gemini-2.5-flash');
+      setBaseUrl('');
     }
   };
 
   const handleProviderSelect = (p: LLMProvider) => {
+    marioSound.playBlockBump();
     setProvider(p);
     setTestResult(null);
+
     if (p === 'ollama') {
       setBaseUrl('http://localhost:11434');
       setModel('deepseek-coder:6.7b');
     } else if (p === 'gemini') {
-      setBaseUrl('https://generativelanguage.googleapis.com');
       setModel('gemini-2.5-flash');
+      setBaseUrl('');
     } else if (p === 'openai') {
-      setBaseUrl('https://api.openai.com/v1');
       setModel('gpt-4o-mini');
+      setBaseUrl('');
     } else if (p === 'groq') {
-      setBaseUrl('https://api.groq.com/openai/v1');
       setModel('llama-3.3-70b-versatile');
+      setBaseUrl('');
     } else if (p === 'anthropic') {
-      setBaseUrl('https://api.anthropic.com');
       setModel('claude-3-5-sonnet-20241022');
-    } else if (p === 'custom') {
-      setBaseUrl('http://localhost:1234/v1');
-      setModel('local-model');
+      setBaseUrl('');
     }
   };
 
   const handleTestConnection = async () => {
     setTesting(true);
     setTestResult(null);
+    marioSound.playJump();
+
     try {
       const res = await api.testLLMConnection({
         provider,
         base_url: baseUrl,
         model,
         api_key: apiKey,
+        temperature,
       });
       setTestResult(res);
+      if (res.success) {
+        marioSound.playCoin();
+      } else {
+        marioSound.playBlockBump();
+      }
     } catch (err: any) {
+      marioSound.playBlockBump();
       setTestResult({
         success: false,
         latency_ms: 0,
@@ -208,6 +220,7 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
   const handleSave = async () => {
     setSaving(true);
     setSaveSuccess(false);
+    marioSound.playJump();
     try {
       const updated = await api.updateLLMConfig({
         provider,
@@ -217,6 +230,7 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
         temperature,
       });
       onConfigSaved(updated);
+      marioSound.play1Up();
       setSaveSuccess(true);
       setTimeout(() => {
         onClose();
@@ -249,64 +263,86 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
     anthropic: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022'],
   };
 
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#111726] border border-slate-750 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div
+        className={`w-full max-w-2xl border-4 shadow-[8px_8px_0px_#000] flex flex-col font-pixel ${
+          isLight ? 'bg-white border-black text-slate-900' : 'bg-[#000000] border-white text-white'
+        }`}
+      >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+        <div className="px-5 py-3.5 border-b-2 border-black flex items-center justify-between bg-[#0050d0] text-white">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-              <Zap className="w-5 h-5" />
-            </div>
+            <div className="text-2xl">⚡</div>
             <div>
-              <h2 className="text-base font-bold text-white">AI Provider & Model Installer</h2>
-              <p className="text-xs text-slate-400">
-                Choose between local open-source LLMs with 1-click model installation, or cloud API keys
+              <h2 className="font-arcade text-xs text-[#fcd800] !text-[#fcd800] drop-shadow-[1px_1px_0px_#000]">
+                AI PROVIDER &amp; MODEL INSTALLER
+              </h2>
+              <p className="font-pixel text-[11px] text-white/90">
+                Choose between local Ollama chiptune models or cloud API keys
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            onClick={() => {
+              marioSound.playBlockBump();
+              onClose();
+            }}
+            className="mario-btn mario-btn-dark px-2 py-0.5 text-xs font-arcade"
           >
-            <X className="w-5 h-5" />
+            ✕
           </button>
         </div>
 
         {/* Modal Content */}
-        <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
           {/* Segmented Mode Switcher */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-lg border border-slate-800">
+          <div
+            className={`grid grid-cols-2 gap-2 p-1.5 border-2 ${
+              isLight ? 'bg-slate-100 border-black' : 'bg-black border-slate-700'
+            }`}
+          >
             <button
               type="button"
               onClick={() => handleModeChange('local')}
-              className={`flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
+              className={`mario-btn py-2 px-3 text-[10px] font-arcade flex items-center justify-center space-x-2 ${
                 modeType === 'local'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'mario-btn-green text-white'
+                  : isLight
+                  ? 'bg-white text-slate-700 border-2 border-slate-300 hover:text-black hover:border-black'
+                  : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
               }`}
             >
-              <Cpu className="w-4 h-4" />
-              <span>Local LLM (Ollama / Localhost)</span>
+              <span>🍄 LOCAL (OLLAMA)</span>
             </button>
             <button
               type="button"
               onClick={() => handleModeChange('cloud')}
-              className={`flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-xs font-semibold transition-all ${
+              className={`mario-btn py-2 px-3 text-[10px] font-arcade flex items-center justify-center space-x-2 ${
                 modeType === 'cloud'
-                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'mario-btn-yellow text-black'
+                  : isLight
+                  ? 'bg-white text-slate-700 border-2 border-slate-300 hover:text-black hover:border-black'
+                  : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
               }`}
             >
-              <Key className="w-4 h-4" />
-              <span>Cloud API Key (Gemini / OpenAI / Groq)</span>
+              <span>⭐ CLOUD API KEY</span>
             </button>
           </div>
 
           {/* Provider Selection */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              Select Provider
+            <label
+              className={`block font-arcade text-[10px] mb-2 ${
+                isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+              }`}
+            >
+              SELECT PROVIDER
             </label>
             <div className="grid grid-cols-3 gap-2">
               {modeType === 'local' ? (
@@ -314,26 +350,58 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleProviderSelect('ollama')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
+                    className={`p-2.5 border-2 text-left text-xs transition-all ${
                       provider === 'ollama'
-                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                        ? isLight
+                          ? 'border-[#00a800] bg-emerald-50 text-emerald-950 font-bold shadow-[2px_2px_0px_#000]'
+                          : 'border-[#00d800] bg-emerald-950/40 text-emerald-300 shadow-[2px_2px_0px_#000]'
+                        : isLight
+                        ? 'border-slate-300 bg-white text-slate-700 hover:border-black'
+                        : 'border-slate-700 bg-slate-950 text-slate-400 hover:border-slate-500'
                     }`}
                   >
-                    <div className="font-bold text-white">Ollama</div>
-                    <div className="text-[10px] opacity-75">Local background daemon</div>
+                    <div
+                      className={`font-arcade text-[10px] ${
+                        isLight ? 'text-slate-950 font-bold' : 'text-white'
+                      }`}
+                    >
+                      OLLAMA
+                    </div>
+                    <div
+                      className={`text-[10px] font-pixel mt-0.5 ${
+                        isLight ? 'text-slate-600 font-semibold' : 'text-slate-400 opacity-75'
+                      }`}
+                    >
+                      Local background daemon
+                    </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleProviderSelect('custom')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
+                    className={`p-2.5 border-2 text-left text-xs transition-all ${
                       provider === 'custom'
-                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                        ? isLight
+                          ? 'border-[#00a800] bg-emerald-50 text-emerald-950 font-bold shadow-[2px_2px_0px_#000]'
+                          : 'border-[#00d800] bg-emerald-950/40 text-emerald-300 shadow-[2px_2px_0px_#000]'
+                        : isLight
+                        ? 'border-slate-300 bg-white text-slate-700 hover:border-black'
+                        : 'border-slate-700 bg-slate-950 text-slate-400 hover:border-slate-500'
                     }`}
                   >
-                    <div className="font-bold text-white">LM Studio / vLLM</div>
-                    <div className="text-[10px] opacity-75">Local OpenAI-compatible</div>
+                    <div
+                      className={`font-arcade text-[10px] ${
+                        isLight ? 'text-slate-950 font-bold' : 'text-white'
+                      }`}
+                    >
+                      LM STUDIO
+                    </div>
+                    <div
+                      className={`text-[10px] font-pixel mt-0.5 ${
+                        isLight ? 'text-slate-600 font-semibold' : 'text-slate-400 opacity-75'
+                      }`}
+                    >
+                      Local vLLM / OpenAI
+                    </div>
                   </button>
                 </>
               ) : (
@@ -341,62 +409,86 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleProviderSelect('gemini')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
+                    className={`p-2.5 border-2 text-left text-xs transition-all ${
                       provider === 'gemini'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                        ? isLight
+                          ? 'border-[#fc9838] bg-amber-50 text-amber-950 font-bold shadow-[2px_2px_0px_#000]'
+                          : 'border-[#fc9838] bg-amber-950/40 text-amber-300 shadow-[2px_2px_0px_#000]'
+                        : isLight
+                        ? 'border-slate-300 bg-white text-slate-700 hover:border-black'
+                        : 'border-slate-700 bg-slate-950 text-slate-400 hover:border-slate-500'
                     }`}
                   >
-                    <div className="font-bold text-white">Google Gemini</div>
-                    <div className="text-[10px] opacity-75">gemini-2.5-flash</div>
+                    <div
+                      className={`font-arcade text-[10px] ${
+                        isLight ? 'text-slate-950 font-bold' : 'text-white'
+                      }`}
+                    >
+                      GEMINI
+                    </div>
+                    <div
+                      className={`text-[10px] font-pixel mt-0.5 ${
+                        isLight ? 'text-slate-600 font-semibold' : 'text-slate-400 opacity-75'
+                      }`}
+                    >
+                      gemini-2.5-flash
+                    </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleProviderSelect('openai')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
+                    className={`p-2.5 border-2 text-left text-xs transition-all ${
                       provider === 'openai'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                        ? isLight
+                          ? 'border-[#fc9838] bg-amber-50 text-amber-950 font-bold shadow-[2px_2px_0px_#000]'
+                          : 'border-[#fc9838] bg-amber-950/40 text-amber-300 shadow-[2px_2px_0px_#000]'
+                        : isLight
+                        ? 'border-slate-300 bg-white text-slate-700 hover:border-black'
+                        : 'border-slate-700 bg-slate-950 text-slate-400 hover:border-slate-500'
                     }`}
                   >
-                    <div className="font-bold text-white">OpenAI</div>
-                    <div className="text-[10px] opacity-75">gpt-4o-mini / gpt-4o</div>
+                    <div
+                      className={`font-arcade text-[10px] ${
+                        isLight ? 'text-slate-950 font-bold' : 'text-white'
+                      }`}
+                    >
+                      OPENAI
+                    </div>
+                    <div
+                      className={`text-[10px] font-pixel mt-0.5 ${
+                        isLight ? 'text-slate-600 font-semibold' : 'text-slate-400 opacity-75'
+                      }`}
+                    >
+                      gpt-4o-mini
+                    </div>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleProviderSelect('groq')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
+                    className={`p-2.5 border-2 text-left text-xs transition-all ${
                       provider === 'groq'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                        ? isLight
+                          ? 'border-[#fc9838] bg-amber-50 text-amber-950 font-bold shadow-[2px_2px_0px_#000]'
+                          : 'border-[#fc9838] bg-amber-950/40 text-amber-300 shadow-[2px_2px_0px_#000]'
+                        : isLight
+                        ? 'border-slate-300 bg-white text-slate-700 hover:border-black'
+                        : 'border-slate-700 bg-slate-950 text-slate-400 hover:border-slate-500'
                     }`}
                   >
-                    <div className="font-bold text-white">Groq Cloud</div>
-                    <div className="text-[10px] opacity-75">Ultra fast Llama-3.3</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleProviderSelect('anthropic')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
-                      provider === 'anthropic'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-bold text-white">Anthropic</div>
-                    <div className="text-[10px] opacity-75">Claude 3.5 Sonnet</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleProviderSelect('custom')}
-                    className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
-                      provider === 'custom'
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-300'
-                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-bold text-white">Custom Cloud</div>
-                    <div className="text-[10px] opacity-75">OpenRouter / Any API</div>
+                    <div
+                      className={`font-arcade text-[10px] ${
+                        isLight ? 'text-slate-950 font-bold' : 'text-white'
+                      }`}
+                    >
+                      GROQ
+                    </div>
+                    <div
+                      className={`text-[10px] font-pixel mt-0.5 ${
+                        isLight ? 'text-slate-600 font-semibold' : 'text-slate-400 opacity-75'
+                      }`}
+                    >
+                      Fast Llama-3.3
+                    </div>
                   </button>
                 </>
               )}
@@ -405,25 +497,30 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
 
           {/* ================= LOCAL MODEL INSTALLER SECTION ================= */}
           {modeType === 'local' && provider === 'ollama' && (
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3.5">
+            <div
+              className={`p-3.5 border-2 space-y-3 ${
+                isLight ? 'bg-slate-50 border-black text-slate-900' : 'bg-slate-950 border-slate-700 text-white'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <HardDrive className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
-                    Local Model Manager & Installer
+                  <HardDrive className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-[#00d800]'}`} />
+                  <span
+                    className={`font-arcade text-[10px] uppercase tracking-wider ${
+                      isLight ? 'text-slate-950 font-bold' : 'text-white'
+                    }`}
+                  >
+                    LOCAL MODEL MANAGER &amp; INSTALLER
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {/* Ollama status badge */}
                   {ollamaOnline === true ? (
-                    <span className="flex items-center space-x-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Ollama Online</span>
+                    <span className="font-arcade text-[8px] text-white bg-[#00a800] px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000]">
+                      ● OLLAMA ONLINE
                     </span>
                   ) : ollamaOnline === false ? (
-                    <span className="flex items-center space-x-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                      <span>Ollama Offline</span>
+                    <span className="font-arcade text-[8px] text-white bg-[#e52521] px-2 py-0.5 border border-black shadow-[1px_1px_0px_#000]">
+                      ● OFFLINE
                     </span>
                   ) : null}
 
@@ -431,45 +528,48 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                     type="button"
                     onClick={refreshLocalModels}
                     disabled={loadingLocalModels}
-                    className="p-1 rounded text-slate-400 hover:text-white transition-colors"
-                    title="Refresh local model list"
+                    className={`p-1 border transition-colors ${
+                      isLight
+                        ? 'border-slate-300 hover:border-black bg-white text-slate-800'
+                        : 'border-slate-700 hover:border-white text-white'
+                    }`}
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${loadingLocalModels ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
               </div>
 
-              {/* Offline Warning & Start Helper */}
+              {/* Offline Warning */}
               {ollamaOnline === false && (
-                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
-                    <span>Ollama service is not reachable on {baseUrl}.</span>
-                  </div>
+                <div className="p-3 bg-red-100 border-2 border-red-600 text-xs text-red-900 flex items-center justify-between font-bold">
+                  <span>Ollama is not reachable on {baseUrl}.</span>
                   <button
                     type="button"
                     onClick={handleStartOllama}
                     disabled={startingOllama}
-                    className="flex items-center space-x-1 px-3 py-1 rounded bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-bold transition-all disabled:opacity-50"
+                    className="mario-btn mario-btn-yellow px-2 py-0.5 text-[9px] font-arcade text-black"
                   >
-                    {startingOllama ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                    )}
-                    <span>{startingOllama ? 'Starting...' : 'Start Ollama'}</span>
+                    {startingOllama ? 'STARTING...' : 'START OLLAMA'}
                   </button>
                 </div>
               )}
 
               {/* Installed Models list */}
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">
-                  Currently Installed Models:
+                <span
+                  className={`font-arcade text-[9px] block mb-1 ${
+                    isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                  }`}
+                >
+                  INSTALLED MODELS:
                 </span>
                 {localModels.length === 0 ? (
-                  <div className="text-xs text-slate-500 italic p-2 rounded bg-slate-950 border border-slate-800">
-                    No models installed yet in Ollama. Choose a recommended model below to install with 1-click!
+                  <div
+                    className={`text-xs italic p-2 border ${
+                      isLight ? 'bg-white border-slate-300 text-slate-600' : 'bg-black border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    No models in Ollama yet. Install a recommended model below!
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
@@ -479,16 +579,20 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                         <button
                           key={m.name}
                           type="button"
-                          onClick={() => setModel(m.name)}
-                          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
+                          onClick={() => {
+                            marioSound.playBlockBump();
+                            setModel(m.name);
+                          }}
+                          className={`flex items-center space-x-1.5 px-2 py-1 text-xs font-mono border transition-all ${
                             isSelected
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
-                              : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700'
+                              ? 'bg-[#00a800] text-white border-black shadow-[2px_2px_0px_#000]'
+                              : isLight
+                              ? 'bg-white text-slate-800 border-slate-300 hover:border-black'
+                              : 'bg-black text-slate-300 border-slate-700 hover:border-slate-500'
                           }`}
                         >
-                          <CheckCircle className={`w-3.5 h-3.5 ${isSelected ? 'text-emerald-400' : 'text-slate-600'}`} />
-                          <span className="font-semibold">{m.name}</span>
-                          <span className="text-[10px] text-slate-500">({m.size_str})</span>
+                          <span className="font-bold">{m.name}</span>
+                          <span className="text-[10px] opacity-75">({m.size_str})</span>
                         </button>
                       );
                     })}
@@ -496,30 +600,14 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                 )}
               </div>
 
-              {/* If model not installed banner */}
-              {ollamaOnline && !isCurrentModelInstalled && model.trim() && !pullingModel && (
-                <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-between text-xs animate-in fade-in">
-                  <div className="flex items-center space-x-2 text-indigo-300">
-                    <Download className="w-4 h-4 text-indigo-400 shrink-0" />
-                    <span>
-                      Model <span className="font-mono font-bold text-white">'{model}'</span> is not installed locally.
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handlePullModel(model)}
-                    className="flex items-center space-x-1 px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-colors shadow-sm"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Install '{model}'</span>
-                  </button>
-                </div>
-              )}
-
-              {/* 1-Click Install Recommended Coding Models */}
+              {/* Recommended Coding Models */}
               <div>
-                <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">
-                  1-Click Install Recommended Coding Models:
+                <span
+                  className={`font-arcade text-[9px] block mb-1.5 ${
+                    isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                  }`}
+                >
+                  1-CLICK INSTALL CODING MODELS:
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   {recommendedLocalModels.map((rec) => {
@@ -529,37 +617,46 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                     return (
                       <div
                         key={rec.id}
-                        className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between gap-2"
+                        className={`p-2 border flex items-center justify-between gap-2 ${
+                          isLight ? 'bg-white border-slate-300' : 'bg-black border-slate-700'
+                        }`}
                       >
                         <div>
-                          <div className="text-xs font-bold text-white flex items-center space-x-1.5">
-                            <span>{rec.name}</span>
-                            <span className="text-[10px] font-normal text-slate-500">({rec.size})</span>
+                          <div
+                            className={`text-xs font-bold ${
+                              isLight ? 'text-slate-950' : 'text-white'
+                            }`}
+                          >
+                            {rec.name} <span className="text-[9px] text-slate-500">({rec.size})</span>
                           </div>
-                          <div className="text-[10px] text-slate-400 line-clamp-1">{rec.desc}</div>
+                          <div
+                            className={`text-[10px] ${
+                              isLight ? 'text-slate-600' : 'text-slate-400'
+                            }`}
+                          >
+                            {rec.desc}
+                          </div>
                         </div>
 
                         {isInstalled ? (
                           <button
                             type="button"
-                            onClick={() => setModel(rec.id)}
-                            className="px-2 py-1 rounded text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
+                            onClick={() => {
+                              marioSound.playBlockBump();
+                              setModel(rec.id);
+                            }}
+                            className="mario-btn mario-btn-green px-2 py-0.5 text-[8px] font-arcade shrink-0"
                           >
-                            Select
+                            SELECT
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handlePullModel(rec.id)}
                             disabled={Boolean(pullingModel)}
-                            className="flex items-center space-x-1 px-2.5 py-1 rounded text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors disabled:opacity-50 shrink-0"
+                            className="mario-btn mario-btn-yellow px-2 py-0.5 text-[8px] font-arcade text-black shrink-0 disabled:opacity-50"
                           >
-                            {isPullingThis ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Download className="w-3 h-3" />
-                            )}
-                            <span>{isPullingThis ? 'Installing...' : 'Install'}</span>
+                            {isPullingThis ? 'DOWNLOADING...' : 'INSTALL'}
                           </button>
                         )}
                       </div>
@@ -568,98 +665,82 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Pulling Progress Bar & Status */}
+              {/* Pulling Progress */}
               {pullingModel && pullProgress && (
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-indigo-500/40 space-y-2 animate-in fade-in">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-white flex items-center space-x-1.5">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
-                      <span>Installing '{pullingModel}'...</span>
+                <div
+                  className={`p-3 border-2 space-y-1.5 animate-in fade-in ${
+                    isLight ? 'bg-amber-50 border-[#fc9838]' : 'bg-black border-[#fc9838]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs font-arcade">
+                    <span className={isLight ? 'text-amber-950 font-bold' : 'text-[#fcd800]'}>
+                      DOWNLOADING '{pullingModel}'...
                     </span>
-                    <span className="font-mono text-indigo-300 font-bold">
+                    <span className={isLight ? 'text-slate-900 font-bold' : 'text-white'}>
                       {pullProgress.percent !== undefined ? `${pullProgress.percent}%` : ''}
                     </span>
                   </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                  <div className="w-full h-3 bg-slate-200 border border-slate-400 overflow-hidden">
                     <div
                       style={{ width: `${pullProgress.percent || 10}%` }}
-                      className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full transition-all duration-300"
+                      className="h-full bg-[#00a800] transition-all duration-300"
                     />
                   </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                    <span className="capitalize">{pullProgress.status}</span>
-                    {pullProgress.total_mb ? (
-                      <span>
-                        {pullProgress.completed_mb} MB / {pullProgress.total_mb} MB
-                      </span>
-                    ) : null}
+                  <div className={`text-[10px] font-mono ${isLight ? 'text-slate-700' : 'text-slate-400'}`}>
+                    {pullProgress.status}
                   </div>
-                </div>
-              )}
-
-              {/* Pull success message */}
-              {pullSuccess && (
-                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{pullSuccess}</span>
-                </div>
-              )}
-
-              {/* Pull error message */}
-              {pullError && (
-                <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                  <span>{pullError}</span>
                 </div>
               )}
             </div>
           )}
 
-          {/* Cloud API Key field */}
+          {/* Model Name Input */}
+          <div>
+            <label
+              className={`block font-arcade text-[10px] mb-1 ${
+                isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+              }`}
+            >
+              MODEL NAME / IDENTIFIER
+            </label>
+            <input
+              type="text"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className={`w-full border-2 px-3 py-1.5 text-xs font-mono focus:outline-none ${
+                isLight
+                  ? 'bg-white border-black text-slate-950 font-bold focus:border-[#0050d0] placeholder-slate-400'
+                  : 'bg-slate-950 border-slate-700 text-white focus:border-[#fcd800] placeholder-slate-500'
+              }`}
+            />
+          </div>
+
+          {/* API Key for Cloud */}
           {modeType === 'cloud' && (
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-300">
-                  {provider.toUpperCase()} API Key
-                </label>
-                {provider === 'gemini' && (
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-amber-400 hover:underline flex items-center space-x-1"
-                  >
-                    <span>Get free Gemini API Key</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-                {provider === 'groq' && (
-                  <a
-                    href="https://console.groq.com/keys"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-amber-400 hover:underline flex items-center space-x-1"
-                  >
-                    <span>Get free Groq Key</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
+              <label
+                className={`block font-arcade text-[10px] mb-1 ${
+                  isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+                }`}
+              >
+                API KEY
+              </label>
               <div className="relative">
                 <input
                   type={showApiKey ? 'text' : 'password'}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={`Enter your ${provider} API Key...`}
-                  className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono pr-9"
+                  placeholder="Paste cloud API key..."
+                  className={`w-full border-2 px-3 py-1.5 text-xs font-mono focus:outline-none ${
+                    isLight
+                      ? 'bg-white border-black text-slate-950 font-bold focus:border-[#0050d0] placeholder-slate-400'
+                      : 'bg-slate-950 border-slate-700 text-white focus:border-[#fcd800] placeholder-slate-500'
+                  }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowApiKey(!showApiKey)}
-                  className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300"
+                  className={`absolute right-2.5 top-2 ${isLight ? 'text-slate-600 hover:text-black' : 'text-slate-400 hover:text-white'}`}
                 >
                   {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -667,139 +748,90 @@ export const LLMSettingsModal: React.FC<LLMSettingsModalProps> = ({
             </div>
           )}
 
-          {/* Model Name Input & Cloud Presets */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Active Model Name
-            </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="e.g. deepseek-coder:6.7b, gemini-2.5-flash, gpt-4o-mini"
-              className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono"
-            />
-            {/* Cloud Model Presets */}
-            {modeType === 'cloud' && cloudModelPresets[provider] && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                <span className="text-[11px] text-slate-500 self-center">Presets:</span>
-                {cloudModelPresets[provider].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setModel(preset)}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition-colors ${
-                      model === preset
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-                    }`}
-                  >
-                    {preset}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Base URL */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Base URL / Host Endpoint
+            <label
+              className={`block font-arcade text-[10px] mb-1 ${
+                isLight ? 'text-slate-900 font-bold' : 'text-[#fcd800]'
+              }`}
+            >
+              BASE URL / ENDPOINT
             </label>
             <input
               type="text"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="e.g. http://localhost:11434"
-              className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono"
-            />
-          </div>
-
-          {/* Temperature Slider */}
-          <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="text-xs font-semibold text-slate-300">
-                Temperature: <span className="font-mono text-emerald-400">{temperature}</span>
-              </label>
-              <span className="text-[10px] text-slate-500">Lower = more deterministic code & tests</span>
-            </div>
-            <input
-              type="range"
-              min="0.0"
-              max="1.0"
-              step="0.05"
-              value={temperature}
-              onChange={(e) => setTemperature(parseFloat(e.target.value))}
-              className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+              className={`w-full border-2 px-3 py-1.5 text-xs font-mono focus:outline-none ${
+                isLight
+                  ? 'bg-white border-black text-slate-950 font-bold focus:border-[#0050d0] placeholder-slate-400'
+                  : 'bg-slate-950 border-slate-700 text-white focus:border-[#fcd800] placeholder-slate-500'
+              }`}
             />
           </div>
 
           {/* Connection Test Result Feedback */}
           {testResult && (
             <div
-              className={`p-3 rounded-lg border text-xs flex items-start space-x-2.5 animate-in fade-in ${
+              className={`p-3 border-2 text-xs flex items-start space-x-2.5 ${
                 testResult.success
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                  : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                  ? isLight
+                    ? 'bg-emerald-50 border-[#00a800] text-emerald-950 font-bold'
+                    : 'bg-emerald-950 border-[#00d800] text-emerald-300'
+                  : isLight
+                  ? 'bg-red-50 border-red-600 text-red-950 font-bold'
+                  : 'bg-red-950 border-red-600 text-red-200'
               }`}
             >
-              {testResult.success ? (
-                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              )}
-              <div className="space-y-0.5">
-                <div className="font-semibold">
+              <div>
+                <div className="font-arcade text-[9px] mb-0.5">
                   {testResult.success
-                    ? `Connected Successfully (${testResult.latency_ms} ms)`
-                    : 'Connection Failed'}
+                    ? `SUCCESSFULLY CONNECTED (${testResult.latency_ms}ms)`
+                    : 'CONNECTION FAILED'}
                 </div>
-                <div className="text-[11px] opacity-90 break-all">{testResult.message}</div>
+                <div className="font-pixel text-xs">{testResult.message}</div>
               </div>
             </div>
           )}
         </div>
 
         {/* Modal Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/50 flex items-center justify-between">
+        <div
+          className={`px-5 py-3 border-t-2 flex items-center justify-between ${
+            isLight ? 'bg-slate-100 border-black' : 'bg-black border-white'
+          }`}
+        >
           <button
             type="button"
             onClick={handleTestConnection}
             disabled={testing}
-            className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-200 transition-colors disabled:opacity-50"
+            className="mario-btn mario-btn-blue px-3 py-1.5 text-[10px] font-arcade flex items-center space-x-1.5 disabled:opacity-50"
           >
-            {testing ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-            ) : (
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-            )}
-            <span>{testing ? 'Testing...' : 'Test Connection'}</span>
+            {testing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            <span>{testing ? 'TESTING...' : 'TEST LINK'}</span>
           </button>
 
           <div className="flex items-center space-x-2">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-colors"
+              onClick={() => {
+                marioSound.playBlockBump();
+                onClose();
+              }}
+              className={`mario-btn px-3 py-1.5 text-[10px] font-arcade ${
+                isLight ? 'bg-slate-200 text-slate-800 border-2 border-black hover:bg-slate-300' : 'mario-btn-dark'
+              }`}
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                saveSuccess
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20'
-              }`}
+              className="mario-btn mario-btn-green px-4 py-1.5 text-[10px] font-arcade flex items-center space-x-1.5 disabled:opacity-50"
             >
-              {saving ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : saveSuccess ? (
-                <CheckCircle className="w-3.5 h-3.5" />
-              ) : null}
-              <span>{saving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Save Settings'}</span>
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+              <span>{saving ? 'SAVING...' : saveSuccess ? 'SAVED!' : 'SAVE SETTINGS'}</span>
             </button>
           </div>
         </div>

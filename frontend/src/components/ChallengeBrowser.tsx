@@ -6,18 +6,14 @@ import {
   Sparkles,
   ArrowRight,
   Code2,
-  Wrench,
-  Layers,
-  SlidersHorizontal,
   Trash2,
-  FileCode2,
   Palette,
-  FileText,
   LayoutList,
   LayoutGrid,
 } from 'lucide-react';
-import { ChallengeListItem, Difficulty, ChallengeMode } from '../types';
+import { ChallengeListItem, Difficulty } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { marioSound } from '../services/soundService';
 
 export type ChallengeCategory = 'all' | 'html' | 'css' | 'javascript';
 
@@ -27,9 +23,9 @@ export function extractChallengeNumber(title: string): number | null {
 }
 
 export const difficultyLabels: Record<Difficulty, string> = {
-  easy: 'Beginner',
-  medium: 'Intermediate',
-  hard: 'Advanced',
+  easy: 'World 1 (Easy)',
+  medium: 'World 2 (Med)',
+  hard: 'Bowser (Hard)',
 };
 
 export function getChallengeCategory(c: { topics: string[]; title?: string }): 'html' | 'css' | 'javascript' {
@@ -83,7 +79,13 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
   onOpenGenerator,
   onDeleteChallenge,
 }) => {
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+  const isUnderground = theme === 'mario-underground';
+  const isCastle = theme === 'mario-castle';
+  const isDark = theme === 'dark';
+
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [selectedCategory, setSelectedCategory] = useState<ChallengeCategory>('all');
   const [search, setSearch] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
@@ -123,162 +125,250 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
       }
       return true;
     });
-  }, [challenges, selectedCategory, search, selectedDifficulty, selectedMode, selectedTopic]);
+  }, [challenges, selectedCategory, selectedDifficulty, selectedMode, selectedTopic, search]);
 
-  // Sorted challenges strictly by sequence number (#1 to #311)
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
-      const numA = extractChallengeNumber(a.title) ?? 99999;
-      const numB = extractChallengeNumber(b.title) ?? 99999;
-      return numA - numB;
+      const numA = extractChallengeNumber(a.title);
+      const numB = extractChallengeNumber(b.title);
+      if (numA !== null && numB !== null) return numA - numB;
+      if (numA !== null) return -1;
+      if (numB !== null) return 1;
+      return a.title.localeCompare(b.title);
     });
   }, [filtered]);
 
-  const difficultyColors: Record<Difficulty, { badge: string; border: string }> = {
-    easy: { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', border: 'hover:border-emerald-500/50' },
-    medium: { badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30', border: 'hover:border-amber-500/50' },
-    hard: { badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30', border: 'hover:border-rose-500/50' },
+  const handleCategorySwitch = (cat: ChallengeCategory) => {
+    marioSound.playPipe();
+    setSelectedCategory(cat);
   };
 
-  const modeLabels: Record<ChallengeMode, { label: string; icon: any }> = {
-    fill_blanks: { label: 'Fill in Blanks', icon: Code2 },
-    fix_broken: { label: 'Fix Bugs', icon: Wrench },
-    build_component: { label: 'Build Component', icon: Layers },
-    recreate_page: { label: 'Recreate Page', icon: Layers },
+  const getDifficultyBadge = (diff: Difficulty) => {
+    switch (diff) {
+      case 'easy':
+        return {
+          icon: '🍄',
+          text: 'WORLD 1',
+          cls: 'bg-[#00a800] text-white border-black',
+        };
+      case 'medium':
+        return {
+          icon: '🔥',
+          text: 'WORLD 2',
+          cls: 'bg-[#fc9838] text-black border-black',
+        };
+      case 'hard':
+        return {
+          icon: '👑',
+          text: 'BOWSER',
+          cls: 'bg-[#e52521] text-white border-black',
+        };
+    }
   };
 
-  const { theme } = useTheme();
+  // Top banner theme classes
+  const bannerClass = isLight
+    ? 'bg-white border-4 border-black p-5 md:p-6 shadow-[6px_6px_0px_#000] text-slate-900'
+    : isUnderground
+    ? 'bg-[#050710] border-4 border-[#2038ec] p-5 md:p-6 shadow-[6px_6px_0px_#2038ec] text-white'
+    : isCastle
+    ? 'bg-[#080202] border-4 border-[#d82800] p-5 md:p-6 shadow-[6px_6px_0px_#d82800] text-amber-100'
+    : 'bg-[#000000] border-4 border-white p-5 md:p-6 shadow-[6px_6px_0px_#000] text-white';
+
+  // Filter bar theme classes
+  const filterBarClass = isLight
+    ? 'bg-white border-4 border-black p-3.5 shadow-[4px_4px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#12182b] border-4 border-[#2038ec] p-3.5 shadow-[4px_4px_0px_#050710]'
+    : isCastle
+    ? 'bg-[#1c0a0a] border-4 border-[#d82800] p-3.5 shadow-[4px_4px_0px_#080202]'
+    : isDark
+    ? 'bg-[#111726] border-4 border-slate-700 p-3.5 shadow-[4px_4px_0px_#000]'
+    : 'bg-white border-4 border-black p-3.5 shadow-[4px_4px_0px_#000]';
+
+  // Input & Select elements style
+  const inputControlClass = isLight
+    ? 'bg-slate-100 border-2 border-black text-black'
+    : isUnderground
+    ? 'bg-[#0b0f20] border-2 border-[#2038ec] text-slate-100'
+    : isCastle
+    ? 'bg-[#120404] border-2 border-[#d82800] text-amber-200'
+    : isDark
+    ? 'bg-[#0b0f17] border-2 border-slate-700 text-white'
+    : 'bg-slate-100 border-2 border-black text-black';
+
+  // Inactive Category button class
+  const inactiveCategoryClass = isLight
+    ? 'bg-white text-slate-800 border-black hover:bg-slate-100'
+    : isUnderground
+    ? 'bg-[#050710] text-slate-300 border-[#2038ec] hover:text-white hover:bg-[#12182b]'
+    : isCastle
+    ? 'bg-[#080202] text-amber-200 border-[#d82800] hover:text-amber-100 hover:bg-[#1c0a0a]'
+    : 'bg-black text-slate-300 border-black hover:text-white';
+
+  // Card theme classes
+  const cardClass = isLight
+    ? 'bg-white border-4 border-black p-4 shadow-[5px_5px_0px_#000] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000]'
+    : isUnderground
+    ? 'bg-[#12182b] border-4 border-[#2038ec] p-4 shadow-[5px_5px_0px_#050710] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#2038ec] hover:border-[#5c94fc]'
+    : isCastle
+    ? 'bg-[#1c0a0a] border-4 border-[#d82800] p-4 shadow-[5px_5px_0px_#080202] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#d82800] hover:border-[#fc9838]'
+    : isDark
+    ? 'bg-[#111726] border-4 border-slate-700 p-4 shadow-[5px_5px_0px_#000] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000] hover:border-slate-500'
+    : 'bg-white border-4 border-black p-4 shadow-[5px_5px_0px_#000] hover:-translate-y-1 hover:shadow-[7px_7px_0px_#000]';
+
+  const cardDividerClass = isUnderground
+    ? 'border-[#2038ec]/50'
+    : isCastle
+    ? 'border-[#d82800]/50'
+    : isDark
+    ? 'border-slate-700'
+    : 'border-black';
+
+  const cardTitleClass = isLight
+    ? 'text-slate-900 group-hover:text-[#e52521]'
+    : isUnderground
+    ? 'text-slate-100 group-hover:text-[#5c94fc]'
+    : isCastle
+    ? 'text-amber-100 group-hover:text-[#fcd800]'
+    : isDark
+    ? 'text-slate-100 group-hover:text-[#fcd800]'
+    : 'text-slate-900 group-hover:text-[#e52521]';
+
+  const cardDescClass = isLight
+    ? 'text-slate-600'
+    : isUnderground
+    ? 'text-slate-400'
+    : isCastle
+    ? 'text-amber-200/70'
+    : isDark
+    ? 'text-slate-400'
+    : 'text-slate-600';
+
+  const cardTagClass = isLight
+    ? 'bg-slate-100 border-slate-300 text-slate-700'
+    : isUnderground
+    ? 'bg-[#050710] border-[#2038ec]/50 text-slate-300'
+    : isCastle
+    ? 'bg-[#080202] border-[#d82800]/50 text-amber-300'
+    : isDark
+    ? 'bg-slate-900 border-slate-700 text-slate-300'
+    : 'bg-slate-100 border-slate-300 text-slate-700';
+
+  const cardFooterTextClass = isLight
+    ? 'text-slate-600'
+    : isUnderground
+    ? 'text-slate-400'
+    : isCastle
+    ? 'text-amber-300/70'
+    : isDark
+    ? 'text-slate-400'
+    : 'text-slate-600';
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-      {/* Top Banner */}
-      <div
-        className={`flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl border shadow-xl relative overflow-hidden transition-colors ${
-          theme === 'light'
-            ? 'bg-gradient-to-r from-slate-50 via-white to-slate-50 border-slate-200 shadow-slate-200/60'
-            : 'bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-slate-800'
-        }`}
-      >
-        <div className="space-y-1.5 z-10">
-          <div className="flex items-center space-x-2 text-emerald-500 font-semibold text-xs uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Frontend Practice Library</span>
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      {/* Top Mario Warp Zone Banner */}
+      <div className={`${bannerClass} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+        <div className="space-y-1.5">
+          <div className="flex items-center space-x-2 text-[#fcd800] text-xs font-arcade">
+            <span>⭐</span>
+            <span className={isLight ? 'text-amber-700 font-bold' : 'text-[#fcd800]'}>WARP ZONE: STAGE SELECTOR</span>
           </div>
           <h1
-            className={`text-2xl font-black tracking-tight ${
-              theme === 'light' ? 'text-slate-900' : 'text-white'
+            className={`font-arcade text-lg sm:text-2xl drop-shadow-[2px_2px_0px_#b84418] ${
+              isLight ? 'text-[#b84418]' : 'text-[#fcd800]'
             }`}
           >
-            Curated & AI-Generated Challenges
+            CHOOSE YOUR WORLD &amp; LEVEL
           </h1>
-          <p
-            className={`text-sm max-w-2xl ${
-              theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-            }`}
-          >
-            Complete real-world frontend tasks, verify styling and DOM mechanics with automated tests,
-            and sharpen your skills with instant feedback.
+          <p className={`font-pixel text-xs max-w-xl ${isLight ? 'text-slate-700 font-medium' : 'text-slate-300'}`}>
+            Choose a stage below to begin your coding run. Test your HTML, CSS, and JS prowess and earn bonus coins!
           </p>
         </div>
+
         <button
-          onClick={onOpenGenerator}
-          className="self-start md:self-center flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 !text-white shadow-lg shadow-indigo-600/30 transition-all z-10"
+          onClick={() => {
+            marioSound.playBlockBump();
+            onOpenGenerator();
+          }}
+          className="mario-btn mario-btn-yellow px-4 py-2 text-xs font-arcade flex items-center space-x-2 text-black self-start md:self-auto"
         >
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <span className="!text-white">Generate Custom Challenge</span>
+          <Sparkles className="w-4 h-4" />
+          <span>GENERATE CUSTOM LEVEL [?]</span>
         </button>
       </div>
 
-      {/* 3 Core Categories Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+      {/* World Category Selector Tabs */}
+      <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 ${cardDividerClass} pb-3`}>
         <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
           {/* All */}
           <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 ${
+            onClick={() => handleCategorySwitch('all')}
+            className={`mario-btn px-3 py-1.5 text-[10px] font-arcade shrink-0 flex items-center space-x-1.5 ${
               selectedCategory === 'all'
-                ? theme === 'light'
-                  ? 'bg-slate-900 text-white shadow-md'
-                  : 'bg-slate-800 text-white shadow-md border border-slate-700'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'mario-btn-red text-white'
+                : inactiveCategoryClass
             }`}
           >
-            <Code2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>All Categories</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-800/80 text-slate-300">
+            <span>ALL WORLDS</span>
+            <span className="px-1.5 bg-black/40 text-white text-[9px] border border-white">
               {categoryCounts.all}
             </span>
           </button>
 
           {/* HTML Category */}
           <button
-            onClick={() => setSelectedCategory('html')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 border ${
+            onClick={() => handleCategorySwitch('html')}
+            className={`mario-btn px-3 py-1.5 text-[10px] font-arcade shrink-0 flex items-center space-x-1.5 ${
               selectedCategory === 'html'
-                ? 'bg-orange-500/15 text-orange-500 border-orange-500/40 shadow-md shadow-orange-500/10'
-                : theme === 'light'
-                ? 'text-slate-600 hover:text-orange-500 hover:bg-orange-50 border-transparent'
-                : 'text-slate-400 hover:text-orange-400 hover:bg-orange-500/10 border-transparent'
+                ? 'mario-btn-yellow text-black'
+                : inactiveCategoryClass
             }`}
           >
-            <span className="font-mono text-xs font-black text-orange-500">&lt;/&gt;</span>
-            <span>HTML</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
+            <span>🍄 HTML</span>
+            <span className="px-1.5 bg-black/40 text-white text-[9px] border border-white">
               {categoryCounts.html}
             </span>
           </button>
 
           {/* CSS Category */}
           <button
-            onClick={() => setSelectedCategory('css')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 border ${
+            onClick={() => handleCategorySwitch('css')}
+            className={`mario-btn px-3 py-1.5 text-[10px] font-arcade shrink-0 flex items-center space-x-1.5 ${
               selectedCategory === 'css'
-                ? 'bg-sky-500/15 text-sky-500 border-sky-500/40 shadow-md shadow-sky-500/10'
-                : theme === 'light'
-                ? 'text-slate-600 hover:text-sky-500 hover:bg-sky-50 border-transparent'
-                : 'text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 border-transparent'
+                ? 'mario-btn-blue text-white'
+                : inactiveCategoryClass
             }`}
           >
-            <Palette className="w-3.5 h-3.5 text-sky-500" />
-            <span>CSS</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400">
+            <span>🎨 CSS</span>
+            <span className="px-1.5 bg-black/40 text-white text-[9px] border border-white">
               {categoryCounts.css}
             </span>
           </button>
 
           {/* JavaScript Category */}
           <button
-            onClick={() => setSelectedCategory('javascript')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 border ${
+            onClick={() => handleCategorySwitch('javascript')}
+            className={`mario-btn px-3 py-1.5 text-[10px] font-arcade shrink-0 flex items-center space-x-1.5 ${
               selectedCategory === 'javascript'
-                ? 'bg-amber-500/15 text-amber-500 border-amber-500/40 shadow-md shadow-amber-500/10'
-                : theme === 'light'
-                ? 'text-slate-600 hover:text-amber-500 hover:bg-amber-50 border-transparent'
-                : 'text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 border-transparent'
+                ? 'mario-btn-green text-white'
+                : inactiveCategoryClass
             }`}
           >
-            <span className="font-mono text-[10px] font-black px-1 rounded bg-amber-500/20 text-amber-500">JS</span>
-            <span>JavaScript</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+            <span>⚡ JAVASCRIPT</span>
+            <span className="px-1.5 bg-black/40 text-white text-[9px] border border-white">
               {categoryCounts.javascript}
             </span>
           </button>
         </div>
 
-        {/* Current Active Category Summary Label */}
-        <div className="text-xs text-slate-400 hidden md:block">
-          Showing <span className="font-semibold text-emerald-400">{filtered.length}</span> {selectedCategory === 'all' ? 'total' : selectedCategory.toUpperCase()} challenges
+        <div className="font-arcade text-[10px] text-black bg-[#fcd800] px-2.5 py-1 border-2 border-black shadow-[2px_2px_0px_#000]">
+          STAGES FOUND: {filtered.length}
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div
-        className={`p-4 rounded-xl border flex flex-col md:flex-row gap-3 items-center justify-between transition-colors ${
-          theme === 'light'
-            ? 'bg-white border-slate-200 shadow-sm'
-            : 'bg-slate-900/60 border-slate-800'
-        }`}
-      >
+      <div className={`${filterBarClass} flex flex-col md:flex-row gap-3 items-center justify-between`}>
         {/* Search Input */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
@@ -286,12 +376,8 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by keyword, topic, or title..."
-            className={`w-full pl-9 pr-3 py-1.5 rounded-lg text-xs focus:outline-none focus:border-emerald-500 border ${
-              theme === 'light'
-                ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
-                : 'bg-slate-950 border-slate-750 text-white placeholder-slate-500'
-            }`}
+            placeholder="Search level name or topic..."
+            className={`w-full pl-9 pr-3 py-1.5 text-xs font-pixel font-bold focus:outline-none ${inputControlClass}`}
           />
         </div>
 
@@ -301,29 +387,21 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
           <select
             value={selectedDifficulty}
             onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className={`text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 border ${
-              theme === 'light'
-                ? 'bg-white border-slate-300 text-slate-800'
-                : 'bg-slate-950 border-slate-750 text-slate-300'
-            }`}
+            className={`text-[10px] font-arcade px-2 py-1.5 focus:outline-none ${inputControlClass}`}
           >
-            <option value="all">All Levels</option>
-            <option value="easy">Beginner</option>
-            <option value="medium">Intermediate</option>
-            <option value="hard">Advanced</option>
+            <option value="all">ALL LEVELS</option>
+            <option value="easy">WORLD 1 (EASY)</option>
+            <option value="medium">WORLD 2 (MED)</option>
+            <option value="hard">BOWSER (HARD)</option>
           </select>
 
           {/* Mode Filter */}
           <select
             value={selectedMode}
             onChange={(e) => setSelectedMode(e.target.value)}
-            className={`text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 border ${
-              theme === 'light'
-                ? 'bg-white border-slate-300 text-slate-800'
-                : 'bg-slate-950 border-slate-750 text-slate-300'
-            }`}
+            className={`text-[10px] font-arcade px-2 py-1.5 focus:outline-none ${inputControlClass}`}
           >
-            <option value="all">All Modes</option>
+            <option value="all">ALL MODES</option>
             <option value="fill_blanks">Fill in Blanks</option>
             <option value="fix_broken">Fix Bugs</option>
             <option value="build_component">Build Component</option>
@@ -333,13 +411,9 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
           <select
             value={selectedTopic}
             onChange={(e) => setSelectedTopic(e.target.value)}
-            className={`text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 border ${
-              theme === 'light'
-                ? 'bg-white border-slate-300 text-slate-800'
-                : 'bg-slate-950 border-slate-750 text-slate-300'
-            }`}
+            className={`text-[10px] font-arcade px-2 py-1.5 focus:outline-none ${inputControlClass}`}
           >
-            <option value="all">All Topics</option>
+            <option value="all">ALL TOPICS</option>
             {allTopics.map((topic) => (
               <option key={topic} value={topic}>
                 {topic}
@@ -347,307 +421,96 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
             ))}
           </select>
 
-          {/* View Mode Switcher: Line by Line vs Cards */}
+          {/* View Mode Switcher */}
           <div
-            className={`flex items-center rounded-lg p-0.5 border ${
-              theme === 'light'
-                ? 'bg-slate-100 border-slate-300'
-                : 'bg-slate-950 border-slate-750'
+            className={`flex items-center space-x-1 border-2 p-0.5 ${
+              isLight
+                ? 'bg-slate-200 border-black'
+                : isUnderground
+                ? 'bg-[#050710] border-[#2038ec]'
+                : isCastle
+                ? 'bg-[#080202] border-[#d82800]'
+                : 'bg-slate-900 border-slate-700'
             }`}
           >
             <button
-              onClick={() => setViewMode('list')}
-              title="Line by Line (List View)"
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center space-x-1.5 transition-all ${
-                viewMode === 'list'
-                  ? 'bg-emerald-500 !text-slate-950 shadow-sm'
-                  : theme === 'light'
-                  ? 'text-slate-600 hover:text-slate-900'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <LayoutList className="w-3.5 h-3.5" />
-              <span>Line by Line</span>
-            </button>
-            <button
               onClick={() => setViewMode('grid')}
-              title="Card Grid View"
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+              className={`p-1 border transition-all ${
                 viewMode === 'grid'
-                  ? 'bg-emerald-500 !text-slate-950 shadow-sm'
-                  : theme === 'light'
-                  ? 'text-slate-600 hover:text-slate-900'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-black text-white border-black'
+                  : isLight
+                  ? 'text-slate-700 hover:text-black border-transparent'
+                  : 'text-slate-400 hover:text-white border-transparent'
               }`}
+              title="Cards Grid"
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Cards</span>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1 border transition-all ${
+                viewMode === 'list'
+                  ? 'bg-black text-white border-black'
+                  : isLight
+                  ? 'text-slate-700 hover:text-black border-transparent'
+                  : 'text-slate-400 hover:text-white border-transparent'
+              }`}
+              title="List View"
+            >
+              <LayoutList className="w-3.5 h-3.5" />
             </button>
           </div>
-
-          {(selectedCategory !== 'all' || selectedDifficulty !== 'all' || selectedMode !== 'all' || selectedTopic !== 'all' || search) && (
-            <button
-              onClick={() => {
-                setSelectedCategory('all');
-                setSelectedDifficulty('all');
-                setSelectedMode('all');
-                setSelectedTopic('all');
-                setSearch('');
-              }}
-              className="text-xs text-slate-400 hover:text-emerald-500 px-2 py-1 underline"
-            >
-              Reset Filters
-            </button>
-          )}
         </div>
       </div>
 
-      {/* ================= CHALLENGES: LINE BY LINE LIST VIEW ================= */}
-      {viewMode === 'list' ? (
-        <div
-          className={`rounded-xl border overflow-hidden shadow-sm transition-colors divide-y ${
-            theme === 'light'
-              ? 'bg-white border-slate-200 divide-slate-100 shadow-slate-200/50'
-              : 'bg-slate-900/60 border-slate-800 divide-slate-800/60'
-          }`}
-        >
-          {/* List Header */}
-          <div
-            className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider flex items-center justify-between ${
-              theme === 'light'
-                ? 'bg-slate-50 text-slate-600 border-b border-slate-200'
-                : 'bg-slate-950/80 text-slate-400 border-b border-slate-800'
-            }`}
-          >
-            <div className="flex items-center space-x-4 flex-1 min-w-0">
-              <span className="w-16 shrink-0"># Problem</span>
-              <span className="flex-1">Title & Topics</span>
-            </div>
-            <div className="flex items-center space-x-3 text-right shrink-0">
-              <span className="w-20 text-center">Category</span>
-              <span className="w-28 text-center">Level</span>
-              <span className="w-28 text-center hidden md:inline-block">Practice Mode</span>
-              <span className="w-16 text-center hidden sm:inline-block">Time</span>
-              <span className="w-24 text-center">Action</span>
-            </div>
-          </div>
-
-          {/* List Rows */}
+      {/* ================= CHALLENGES: CARD GRID VIEW ================= */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {sorted.map((c) => {
             const seqNum = extractChallengeNumber(c.title);
-            const diffCfg = difficultyColors[c.difficulty] || difficultyColors.easy;
-            const ModeIcon = modeLabels[c.mode]?.icon || Code2;
-            const modeName = modeLabels[c.mode]?.label || c.mode;
+            const badge = getDifficultyBadge(c.difficulty);
             const category = getChallengeCategory(c);
-            const levelLabel = difficultyLabels[c.difficulty] || c.difficulty;
 
             return (
               <div
                 key={c.id}
-                onClick={() => onSelectChallenge(c.id)}
-                className={`px-4 py-3.5 flex items-center justify-between transition-colors cursor-pointer group ${
-                  theme === 'light'
-                    ? 'hover:bg-emerald-50/40'
-                    : 'hover:bg-slate-850/80'
-                }`}
-              >
-                {/* Left: Number + Title + Description + Topics */}
-                <div className="flex items-center space-x-4 flex-1 min-w-0 pr-4">
-                  <span
-                    className={`w-16 shrink-0 font-mono font-black text-xs px-2 py-1 rounded text-center border ${
-                      category === 'html'
-                        ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
-                        : category === 'css'
-                        ? 'bg-sky-500/10 text-sky-500 border-sky-500/30'
-                        : 'bg-amber-500/10 text-amber-500 border-amber-500/30'
-                    }`}
-                  >
-                    #{seqNum ?? '-'}
-                  </span>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <h3
-                        className={`text-sm font-semibold truncate group-hover:text-emerald-500 transition-colors ${
-                          theme === 'light' ? 'text-slate-900' : 'text-white'
-                        }`}
-                      >
-                        {c.title}
-                      </h3>
-                      {c.is_solved && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      )}
-                    </div>
-                    <p
-                      className={`text-xs truncate mt-0.5 ${
-                        theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-                      }`}
-                    >
-                      {c.description}
-                    </p>
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {c.topics.slice(0, 3).map((t) => (
-                        <span
-                          key={t}
-                          className={`text-[9px] px-1.5 py-0.5 rounded border ${
-                            theme === 'light'
-                              ? 'bg-slate-100 text-slate-600 border-slate-200'
-                              : 'bg-slate-950 text-slate-400 border-slate-800'
-                          }`}
-                        >
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: Badges & Action */}
-                <div className="flex items-center space-x-3 shrink-0 text-right">
-                  <span
-                    className={`w-20 text-center text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${
-                      category === 'html'
-                        ? 'bg-orange-500/15 text-orange-500 border-orange-500/30'
-                        : category === 'css'
-                        ? 'bg-sky-500/15 text-sky-500 border-sky-500/30'
-                        : 'bg-amber-500/15 text-amber-500 border-amber-500/30'
-                    }`}
-                  >
-                    {category.toUpperCase()}
-                  </span>
-
-                  <span
-                    className={`w-28 text-center text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-full border ${diffCfg.badge}`}
-                  >
-                    {levelLabel}
-                  </span>
-
-                  <span
-                    className={`w-28 text-center text-[11px] font-medium px-2 py-0.5 rounded-full border hidden md:inline-flex items-center justify-center space-x-1 ${
-                      theme === 'light'
-                        ? 'bg-slate-100 text-slate-700 border-slate-300'
-                        : 'bg-slate-800 text-slate-300 border-slate-700'
-                    }`}
-                  >
-                    <ModeIcon className="w-3 h-3 text-slate-400" />
-                    <span className="truncate">{modeName}</span>
-                  </span>
-
-                  <span
-                    className={`w-16 text-center text-xs font-mono hidden sm:inline-block ${
-                      theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-                    }`}
-                  >
-                    ~{c.estimated_minutes}m
-                  </span>
-
-                  <div className="w-24 text-center">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectChallenge(c.id);
-                      }}
-                      className="px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500 hover:!text-slate-950 border border-emerald-500/30 transition-all flex items-center justify-center space-x-1 mx-auto"
-                    >
-                      <span>{c.is_solved ? 'Again' : 'Solve'}</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* ================= CHALLENGES: CARD GRID VIEW ================= */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sorted.map((c) => {
-            const seqNum = extractChallengeNumber(c.title);
-            const diffCfg = difficultyColors[c.difficulty] || difficultyColors.easy;
-            const ModeIcon = modeLabels[c.mode]?.icon || Code2;
-            const modeName = modeLabels[c.mode]?.label || c.mode;
-            const category = getChallengeCategory(c);
-            const levelLabel = difficultyLabels[c.difficulty] || c.difficulty;
-
-            return (
-              <div
-                key={c.id}
-                onClick={() => onSelectChallenge(c.id)}
-                className={`p-5 rounded-xl border flex flex-col justify-between transition-all cursor-pointer group shadow-sm hover:shadow-xl ${
-                  theme === 'light'
-                    ? 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
-                    : 'bg-slate-900/60 border-slate-800 hover:bg-slate-850'
-                } ${diffCfg.border}`}
+                onClick={() => {
+                  marioSound.playJump();
+                  onSelectChallenge(c.id);
+                }}
+                className={`${cardClass} transition-all cursor-pointer flex flex-col justify-between group`}
               >
                 <div>
-                  {/* Badges row */}
-                  <div className="flex items-center justify-between mb-3">
+                  {/* Top Badges */}
+                  <div className={`flex items-center justify-between mb-3 border-b-2 ${cardDividerClass} pb-2`}>
                     <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                      {/* Number badge */}
-                      <span
-                        className={`text-[10px] font-mono font-black px-2 py-0.5 rounded border ${
-                          category === 'html'
-                            ? 'bg-orange-500/10 text-orange-500 border-orange-500/30'
-                            : category === 'css'
-                            ? 'bg-sky-500/10 text-sky-500 border-sky-500/30'
-                            : 'bg-amber-500/10 text-amber-500 border-amber-500/30'
-                        }`}
-                      >
+                      <span className="font-arcade text-[9px] bg-black text-[#fcd800] px-1.5 py-0.5 border border-black">
                         #{seqNum ?? '-'}
                       </span>
-
-                      {/* Category badge */}
-                      <span
-                        className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border flex items-center space-x-1 ${
-                          category === 'html'
-                            ? 'bg-orange-500/15 text-orange-500 border-orange-500/30'
-                            : category === 'css'
-                            ? 'bg-sky-500/15 text-sky-500 border-sky-500/30'
-                            : 'bg-amber-500/15 text-amber-500 border-amber-500/30'
-                        }`}
-                      >
-                        <span>{category.toUpperCase()}</span>
+                      <span className="font-arcade text-[9px] bg-[#0050d0] text-white px-1.5 py-0.5 border border-black uppercase">
+                        {category}
                       </span>
-
-                      {/* Level badge */}
-                      <span
-                        className={`text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-full border ${diffCfg.badge}`}
-                      >
-                        {levelLabel}
-                      </span>
-                      <span
-                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border flex items-center space-x-1.5 transition-colors ${
-                          theme === 'light'
-                            ? 'bg-slate-100 text-slate-700 border-slate-300'
-                            : 'bg-slate-800 text-slate-300 border-slate-700'
-                        }`}
-                      >
-                        <ModeIcon
-                          className={`w-3 h-3 ${
-                            theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-                          }`}
-                        />
-                        <span>{modeName}</span>
+                      <span className={`font-arcade text-[9px] px-1.5 py-0.5 border ${badge.cls}`}>
+                        {badge.icon} {badge.text}
                       </span>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5">
                       {c.is_solved && (
-                        <div className="flex items-center space-x-1 text-emerald-500 text-xs font-semibold">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>Solved</span>
-                        </div>
+                        <span className="text-xs font-arcade text-[#00a800]" title="Cleared!">
+                          ⭐
+                        </span>
                       )}
                       {onDeleteChallenge && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (window.confirm(`Are you sure you want to delete "${c.title}"?`)) {
+                            marioSound.playBlockBump();
+                            if (window.confirm(`Delete level "${c.title}"?`)) {
                               onDeleteChallenge(c.id);
                             }
                           }}
-                          title="Delete challenge"
-                          className="p-1 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 opacity-60 hover:opacity-100 transition-all"
+                          className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -655,66 +518,102 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
                     </div>
                   </div>
 
-                  {/* Title */}
-                  <h3
-                    className={`text-base font-bold group-hover:text-emerald-500 transition-colors line-clamp-1 mb-1.5 ${
-                      theme === 'light' ? 'text-slate-900' : 'text-white'
-                    }`}
-                  >
+                  {/* Title & Description */}
+                  <h3 className={`font-arcade text-xs leading-snug mb-2 transition-colors ${cardTitleClass}`}>
                     {c.title}
                   </h3>
-
-                  {/* Description */}
-                  <p
-                    className={`text-xs line-clamp-2 leading-relaxed mb-4 ${
-                      theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-                    }`}
-                  >
+                  <p className={`font-pixel text-xs line-clamp-3 leading-relaxed mb-3 ${cardDescClass}`}>
                     {c.description}
                   </p>
 
-                  {/* Topics pills */}
-                  <div className="flex flex-wrap gap-1 mb-4">
+                  {/* Topics */}
+                  <div className="flex flex-wrap gap-1 mb-3">
                     {c.topics.slice(0, 3).map((t) => (
                       <span
                         key={t}
-                        className={`text-[10px] px-2 py-0.5 rounded-md border ${
-                          theme === 'light'
-                            ? 'bg-slate-100 text-slate-600 border-slate-200'
-                            : 'bg-slate-950 text-slate-400 border-slate-800'
-                        }`}
+                        className={`font-arcade text-[8px] px-1.5 py-0.5 border ${cardTagClass}`}
                       >
                         #{t}
                       </span>
                     ))}
-                    {c.topics.length > 3 && (
-                      <span className="text-[10px] px-1.5 py-0.5 text-slate-500">
-                        +{c.topics.length - 3}
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                {/* Card Footer */}
-                <div
-                  className={`pt-3 border-t flex items-center justify-between text-xs ${
-                    theme === 'light'
-                      ? 'border-slate-200 text-slate-500'
-                      : 'border-slate-800/80 text-slate-400'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="flex items-center space-x-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{c.estimated_minutes}m</span>
-                    </span>
-                    <span>{c.tests_count} checks</span>
-                  </div>
+                {/* Footer */}
+                <div className={`pt-2 border-t-2 ${cardDividerClass} flex items-center justify-between text-xs`}>
+                  <span className={`font-arcade text-[9px] ${cardFooterTextClass}`}>
+                    ⏱ {c.estimated_minutes}M • {c.tests_count} CHECKS
+                  </span>
+                  <button className="mario-btn mario-btn-yellow px-2 py-0.5 text-[9px] font-arcade flex items-center space-x-1 text-black">
+                    <span>{c.is_solved ? 'REPLAY' : 'START'}</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* ================= CHALLENGES: LIST VIEW ================= */
+        <div
+          className={`border-4 divide-y-2 shadow-[5px_5px_0px_#000] ${
+            isLight
+              ? 'bg-white border-black divide-black text-slate-900'
+              : isUnderground
+              ? 'bg-[#12182b] border-[#2038ec] divide-[#2038ec]/50 text-slate-100'
+              : isCastle
+              ? 'bg-[#1c0a0a] border-[#d82800] divide-[#d82800]/50 text-amber-100'
+              : isDark
+              ? 'bg-[#111726] border-slate-700 divide-slate-800 text-slate-100'
+              : 'bg-white border-black divide-black text-slate-900'
+          }`}
+        >
+          {sorted.map((c) => {
+            const seqNum = extractChallengeNumber(c.title);
+            const badge = getDifficultyBadge(c.difficulty);
+            const category = getChallengeCategory(c);
 
-                  <div className="flex items-center space-x-1 text-emerald-500 font-semibold group-hover:translate-x-1 transition-transform">
-                    <span>{c.is_solved ? 'Practice Again' : 'Solve'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+            return (
+              <div
+                key={c.id}
+                onClick={() => {
+                  marioSound.playJump();
+                  onSelectChallenge(c.id);
+                }}
+                className={`p-3 flex items-center justify-between cursor-pointer transition-colors group ${
+                  isLight || !isDark
+                    ? 'hover:bg-yellow-50'
+                    : isUnderground
+                    ? 'hover:bg-[#1a2340]'
+                    : isCastle
+                    ? 'hover:bg-[#280f0f]'
+                    : 'hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center space-x-3 flex-1 min-w-0 pr-3">
+                  <span className="font-arcade text-[10px] bg-black text-[#fcd800] px-1.5 py-0.5 border border-black shrink-0">
+                    #{seqNum ?? '-'}
+                  </span>
+                  <div className="truncate">
+                    <div className={`font-arcade text-xs transition-colors truncate ${cardTitleClass}`}>
+                      {c.title}
+                    </div>
+                    <div className={`font-pixel text-xs truncate ${cardDescClass}`}>
+                      {c.description}
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex items-center space-x-2 shrink-0">
+                  <span className="font-arcade text-[9px] bg-[#0050d0] text-white px-1.5 py-0.5 border border-black">
+                    {category.toUpperCase()}
+                  </span>
+                  <span className={`font-arcade text-[9px] px-1.5 py-0.5 border ${badge.cls}`}>
+                    {badge.text}
+                  </span>
+                  <button className="mario-btn mario-btn-yellow px-2.5 py-1 text-[9px] font-arcade text-black">
+                    {c.is_solved ? 'RETRY' : 'PLAY'}
+                  </button>
                 </div>
               </div>
             );
@@ -723,13 +622,28 @@ export const ChallengeBrowser: React.FC<ChallengeBrowserProps> = ({
       )}
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl bg-slate-900/30">
-          <p className="text-sm text-slate-400 mb-3">No challenges match your active filters.</p>
+        <div
+          className={`text-center py-12 border-4 p-6 shadow-[4px_4px_0px_#000] ${
+            isLight
+              ? 'bg-white border-black text-slate-800'
+              : isUnderground
+              ? 'bg-[#12182b] border-[#2038ec] text-slate-200'
+              : isCastle
+              ? 'bg-[#1c0a0a] border-[#d82800] text-amber-200'
+              : isDark
+              ? 'bg-[#111726] border-slate-700 text-slate-200'
+              : 'bg-white border-black text-slate-800'
+          }`}
+        >
+          <p className="font-arcade text-xs mb-3">NO STAGES MATCH YOUR ACTIVE FILTERS!</p>
           <button
-            onClick={onOpenGenerator}
-            className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white"
+            onClick={() => {
+              marioSound.playBlockBump();
+              onOpenGenerator();
+            }}
+            className="mario-btn mario-btn-yellow px-4 py-2 text-xs font-arcade text-black"
           >
-            Generate one with AI now
+            GENERATE ONE WITH AI [?]
           </button>
         </div>
       )}
